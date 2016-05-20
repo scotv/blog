@@ -1,0 +1,1902 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+
+ <title>Code this.</title>
+ <link href="https://scozv.github.io/blog/atom.xml" rel="self"/>
+ <link href="https://scozv.github.io/blog"/>
+ <updated>2016-05-20T17:08:23+08:00</updated>
+ <id>https://scozv.github.io/blog</id>
+ <author>
+   <name>Scott</name>
+   <email>scozv@yandex.com</email>
+ </author>
+ 
+ 
+ <entry>
+   <title>A Loose Coupling Architecture of the Web Solution with Continuous Integration</title>
+   <link href="https://scozv.github.io/blog/pattern/2016/05/05/a-low-coupling-architecture-of-the-web-solution-with-continuous-integration"/>
+   <updated>2016-05-05T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/pattern/2016/05/05/a-low-coupling-architecture-of-the-web-solution-with-continuous-integration</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;abstract&quot;&gt;Abstract&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This article will discuss two core ideas for a Architecture of the Web Solution,
+that are Loose Coupling and Continuous Integration.&lt;/p&gt;
+
+  &lt;p&gt;The article is mainly written in Chinese, while the
+English post has not been started yet.
+However, I provide a drawing for indicating the Loose Coupling Architecture.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;The Loose Coupling Architecture can be explained as below
+(drawn with &lt;a href=&quot;http://asciiflow.com/&quot;&gt;ASCIIFlow Infinity&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;####################################  scenario 01, entire node
+
++------------+              +-----------------+
+| you and me |              | IIS / tomcat    |
+| Chromium   +------------&amp;gt; | ASP .NET MVC    |
+|            |              | Database        |
+| mobile     |              |                 |
+| device     |              |                 |
++------------+              +-----------------+
+
+
+####################################  scenario 02, separating View from MV+C
+
++------------+              +-----------------+                      +--------------------+
+| you and me |              | View            |    HTTP Request      | RESTful API        |
+| Chromium   +------------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+|            |              | static HTML page|                      |                    |
+| mobile     |              | mobile App      |                      | Database           |
+| device     |              |                 |                      |                    |
+|            |              |                 | &amp;lt;--------------------+                    |
++------------+              +-----------------+    HTTP Response     +--------------------+
+
+
+####################################  scenario 03, separating Database from MV
+
++------------+              +-----------------+                      +--------------------+
+| you and me |              | View            |    HTTP Request      | RESTful API        |
+| Chromium   +------------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+|            |              | static HTML page|                      |                    |
+| mobile     |              | mobile App      |                      |                    |
+| device     |              |                 |                      |                    |
+|            |              |                 | &amp;lt;--------------------+                    |
++------------+              +-----------------+    HTTP Response     +-+------------------+
+                                                                       |
+                                                                       |  connection
+                                                                       |  string
+                                                                       |
+                                                                       |
+                                                                     +-+------------------+
+                                                                     | PaaS               |
+                                                                     | Database+aaS       |
+                                                                     |                    |
+                                                                     |                    |
+                                                                     |                    |
+                                                                     |                    |
+                                                                     +--------------------+
+
+
+
+
+####################################  scenario 04, multiple Databases
+
+
+                                                                      +--------------------+
+                                                                      | PaaS               |
+                                                                      | Database+aaS       |
+                                                                      |                    |
+                                                                      | Core Business      |
+                                                                      |                    |
+                                                                      |                    |
+                                                                      +-+------------------+
+                                                                        |
+                                                                        | connection
+                                                                        | string
+                                                                        |
+                                                                        |
+ +-------------+             +-----------------+                      +-+------------------+
+ | you and me  |             | View            |    HTTP Request      | RESTful API        |
+ | Chromium    +-----------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+ |             |             | static HTML page|                      |                    |
+ | mobile      |             | mobile App      |                      |                    |
+ | device      |             |                 |                      |                    |
+ |             |             |                 | &amp;lt;--------------------+                    |
+ +-------------+             +-----------------+    HTTP Response     +-+------------------+
+                                                                        |
+                                                                        | connection
+                                                                        | string
+                                                                        |
+                                                                        |
+                                                                      +-+------------------+
+                                                                      | PaaS               |
+                                                                      | Database+aaS       |
+                                                                      |                    |
+                                                                      | user-agent data    |
+                                                                      |                    |
+                                                                      |                    |
+                                                                      +--------------------+
+
+
+
+
+ ####################################  scenario 05, separating and combination
+
+ +------------+              +-----------------+                      +--------------------+
+ | you and me |              | View            |    HTTP Request      | RESTful API        |
+ | Chromium   +------------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+ |            |              | static HTML page|                      |                    |
+ | mobile     |              | mobile App      |                      |                    |
+ | device     |              |                 |                      |                    |
+ |            |              |                 | &amp;lt;--------------------+                    |
+ +------------+              +-----------------+    HTTP Response     +-+------------------+
+                             | Database        |                        |
+                             |                 |                        | connection
+                             | user-agent data |                        | string
+                             |                 |                        |
+                             |                 |                        |
+                             |                 |                        |
+                             +-----------------+                      +-+-------------------+
+                                                                      | PaaS                |
+                                                                      | Database+aaS        |
+                                                                      |                     |
+                                                                      | Core Business       |
+                                                                      |                     |
+                                                                      |                     |
+                                                                      +---------------------+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>Fully Migrating from Bitbucket Cloud Issue System to JIRA Server</title>
+   <link href="https://scozv.github.io/blog/guide/2016/04/05/fully-migrating-from-bitbucket-cloud-issue-system-to-jira-server"/>
+   <updated>2016-04-05T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/guide/2016/04/05/fully-migrating-from-bitbucket-cloud-issue-system-to-jira-server</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;abstract&quot;&gt;Abstract&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This post will give a full migration guide from Bitbucket Cloud Issue
+to JIRA Server, including:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Import legacy Bitbucket Cloud Issue into JIRA Server,&lt;/li&gt;
+    &lt;li&gt;Build Dual-direction connection between Bitbucket Cloud and JIRA Server,&lt;/li&gt;
+    &lt;li&gt;Upgrade the issue ticket number in git commits history,
+to archive the &lt;strong&gt;FULL&lt;/strong&gt; migration.&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;This post will &lt;strong&gt;NOT&lt;/strong&gt; cover the topics below:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Why I choose JIRA instead of other issue system,&lt;/li&gt;
+    &lt;li&gt;Why I choose Bitbucket Cloud instead of other git server,&lt;/li&gt;
+    &lt;li&gt;Why I choose Ubuntu 14.04 Server instead of other OS.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#core-ideas-of-my-understanding-of-a-project&quot; id=&quot;markdown-toc-core-ideas-of-my-understanding-of-a-project&quot;&gt;Core Ideas of My Understanding of a Project&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#loose-coupling&quot; id=&quot;markdown-toc-loose-coupling&quot;&gt;Loose Coupling&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#continuous-integration&quot; id=&quot;markdown-toc-continuous-integration&quot;&gt;Continuous Integration&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#limitation-of-bitbucket-cloud-build-in-issue-system&quot; id=&quot;markdown-toc-limitation-of-bitbucket-cloud-build-in-issue-system&quot;&gt;Limitation of Bitbucket Cloud Build-in Issue System&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#jira-a-central-issue-system&quot; id=&quot;markdown-toc-jira-a-central-issue-system&quot;&gt;JIRA, a Central Issue System&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#full-migration-guide-to-jira-server&quot; id=&quot;markdown-toc-full-migration-guide-to-jira-server&quot;&gt;Full Migration Guide to JIRA Server&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#installing-jira-server-on-ubuntu&quot; id=&quot;markdown-toc-installing-jira-server-on-ubuntu&quot;&gt;Installing JIRA Server on Ubuntu&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#create-a-project-in-jira&quot; id=&quot;markdown-toc-create-a-project-in-jira&quot;&gt;Create a Project in JIRA&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#import-legacy-issue-from-bitbucket-cloud&quot; id=&quot;markdown-toc-import-legacy-issue-from-bitbucket-cloud&quot;&gt;Import Legacy Issue from Bitbucket Cloud&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#setup-the-dvcs-accounts-in-jira-with-bitbucket-cloud&quot; id=&quot;markdown-toc-setup-the-dvcs-accounts-in-jira-with-bitbucket-cloud&quot;&gt;Setup the DVCS Accounts in JIRA with Bitbucket Cloud&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#setup-the-jira-link-in-bitbucket-cloud&quot; id=&quot;markdown-toc-setup-the-jira-link-in-bitbucket-cloud&quot;&gt;Setup the JIRA Link in Bitbucket Cloud&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#change-the-legacy-issue-number-of-git-history-ie-fully-migrating&quot; id=&quot;markdown-toc-change-the-legacy-issue-number-of-git-history-ie-fully-migrating&quot;&gt;Change the Legacy Issue Number of Git History, ie. Fully Migrating&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#not-a-fully-migrating&quot; id=&quot;markdown-toc-not-a-fully-migrating&quot;&gt;NOT a Fully Migrating&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#appendix&quot; id=&quot;markdown-toc-appendix&quot;&gt;Appendix&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#jira-installation-script&quot; id=&quot;markdown-toc-jira-installation-script&quot;&gt;JIRA Installation Script&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#references&quot; id=&quot;markdown-toc-references&quot;&gt;References&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;core-ideas-of-my-understanding-of-a-project&quot;&gt;Core Ideas of My Understanding of a Project&lt;/h1&gt;
+
+&lt;p&gt;&lt;strong&gt;Loose Coupling&lt;/strong&gt; and &lt;strong&gt;CI&lt;/strong&gt; are two core ideas of my understanding
+of a project.&lt;/p&gt;
+
+&lt;h2 id=&quot;loose-coupling&quot;&gt;Loose Coupling&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;A project MUST be separated into a series of INDEPENDENT modules,&lt;/li&gt;
+  &lt;li&gt;Each module will be a code repository,&lt;/li&gt;
+  &lt;li&gt;The communication among these INDEPENDENT modules is not depended
+on source code, it is depended on the API docs.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;continuous-integration&quot;&gt;Continuous Integration&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Each module MUST contains the necessary tests with at least 80%
+code covered,&lt;/li&gt;
+  &lt;li&gt;An infrastructure module MUST satisfy 100% code coverage,&lt;/li&gt;
+  &lt;li&gt;A RESTful Service module MUST contain the &lt;code class=&quot;highlighter-rouge&quot;&gt;FakeRequest&lt;/code&gt; BDD test,&lt;/li&gt;
+  &lt;li&gt;A web page module shoud consider the web page test, such as using &lt;a href=&quot;www.seleniumhq.org&quot;&gt;Selenium&lt;/a&gt;,&lt;/li&gt;
+  &lt;li&gt;不写测试的代码就是耍流氓&lt;/li&gt;
+  &lt;li&gt;Each module need to satisfy the Commit Acceptance Policy &lt;sup id=&quot;fnref:CAP01&quot;&gt;&lt;a href=&quot;#fn:CAP01&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;:
+    &lt;ul&gt;
+      &lt;li&gt;The source commit message must contain a valid issue number(s),&lt;/li&gt;
+      &lt;li&gt;All issues referenced in the commit message must be UNRESOLVED,&lt;/li&gt;
+      &lt;li&gt;All issues referenced in the commit message must be assigned to the committer.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Every commit to any module need to be build and tested on CI server,&lt;/li&gt;
+  &lt;li&gt;Committer will be noticed when the commit leaded a failure build or test,&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Each code commit can be traced to the issue system&lt;/strong&gt;,&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Each issue can be traced to a series of commits&lt;/strong&gt;,&lt;/li&gt;
+  &lt;li&gt;The environment of each iterative build should be independent,&lt;/li&gt;
+  &lt;li&gt;Continuous build, deployment and more…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;limitation-of-bitbucket-cloud-build-in-issue-system&quot;&gt;Limitation of Bitbucket Cloud Build-in Issue System&lt;/h1&gt;
+
+&lt;p&gt;If we want to build a library system (the project code is &lt;code class=&quot;highlighter-rouge&quot;&gt;LS&lt;/code&gt;),
+we may separate the project into a series of repositories (modules) below:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ls-core-restful&lt;/code&gt;: A core RESTful service, including user management, book management,
+and borrowing management,&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ls-web-user&lt;/code&gt;: A web page system for user to send the borrowing request,&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ls-web-admin&lt;/code&gt;: A web page system for library staff to approve the borrowing request,&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ls-core-model&lt;/code&gt;: An infrastructure data model in JavaScript (or TypeScript) shared by two web page systems.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;(This separation is only used for the example, it may not be a perfect module
+  architecture)&lt;/p&gt;
+
+&lt;p&gt;We create a project with code name &lt;code class=&quot;highlighter-rouge&quot;&gt;LS&lt;/code&gt; in Bitbucket Cloud.&lt;/p&gt;
+
+&lt;p&gt;We create four repositories under &lt;code class=&quot;highlighter-rouge&quot;&gt;LS&lt;/code&gt; in Bitbucket Cloud:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;ls-core-restful.git
+ls-core-model.git
+ls-web-user.git
+ls-web-admin.git&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;If we raise an issue saying:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;Login page should be designed and implemented&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Where we open the issue in the Bitbucket Cloud build-in Issue System?
+In Bitbucket Cloud, the build-in issue system is not share in project,
+we have to raise an individual issue in each repo:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# ls-core-model.git/issue/1&lt;/span&gt;
+Implement the User model
+&lt;span class=&quot;c&quot;&gt;# ls-core-restful.git/issue/1&lt;/span&gt;
+Implement the login with token authentication service
+&lt;span class=&quot;c&quot;&gt;# ls-web-user/issue/1&lt;/span&gt;
+Implement the user login page
+&lt;span class=&quot;c&quot;&gt;# ls-web-admin/issue/1&lt;/span&gt;
+Implement the admin authorization page&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The limitation of Bitbucket Cloud build-in Issue System is:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Not a central issue system,&lt;/li&gt;
+  &lt;li&gt;Have to grant access right of &lt;code class=&quot;highlighter-rouge&quot;&gt;ls-core-restful&lt;/code&gt; to other committers.
+This has been violating the &lt;strong&gt;Loose Coupling&lt;/strong&gt; principle, cause we just need
+to expose an API docs of &lt;code class=&quot;highlighter-rouge&quot;&gt;ls-core-restful&lt;/code&gt;
+to committers of other repositories,&lt;/li&gt;
+  &lt;li&gt;The commit history of “Login page implementation” has to be
+separated into different repositories,
+violating the &lt;strong&gt;Continuous Integration&lt;/strong&gt; principle.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;jira-a-central-issue-system&quot;&gt;JIRA, a Central Issue System&lt;/h1&gt;
+
+&lt;p&gt;We need a Central Issue System that can be synced with multiple source code
+repositories. I choose JIRA 6.4.13 + JIRA Agile deploying on the environment
+below:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;Ubuntu 14.04.4 LTS
+mysql  Ver 14.14 Distrib 5.5.47,
+  &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;debian-linux-gnu &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;x86_64&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; using readline 6.3
+openjdk version &lt;span class=&quot;s2&quot;&gt;&quot;1.8.0_72-internal&quot;&lt;/span&gt;
+OpenJDK Runtime Environment &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;build 1.8.0_72-internal-b15&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+OpenJDK 64-Bit Server VM &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;build 25.72-b15, mixed mode&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Atlassian JIRA Project Management Software
+  &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;v6.4.13#64028-sha1:b7939e9&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+JIRA Agile 6.7.12
+JIRA Commit Acceptance Plugin 1.6.0&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Currently, my deployment of JIRA 6 + Agile works smoothly with Bitbucket Cloud.
+We can:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Raise only one issue that need code changes on multiple repositories,&lt;/li&gt;
+  &lt;li&gt;Push code to Bitbucket Cloud,
+then review the commit history in JIRA issue page,&lt;/li&gt;
+  &lt;li&gt;Configure Bitbucket Cloud, so that the commit history page can link to
+the JIRA issue.&lt;/li&gt;
+  &lt;li&gt;[TODO] Reject push that committed to Bitbucket Cloud if this commit violates
+the JIRA Acceptance Policy.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;full-migration-guide-to-jira-server&quot;&gt;Full Migration Guide to JIRA Server&lt;/h1&gt;
+
+&lt;h2 id=&quot;installing-jira-server-on-ubuntu&quot;&gt;Installing JIRA Server on Ubuntu&lt;/h2&gt;
+
+&lt;p&gt;Atlassian provides an official installation guide &lt;sup id=&quot;fnref:ATL_jira_install&quot;&gt;&lt;a href=&quot;#fn:ATL_jira_install&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;.
+Meet the system requirement, and pay attention on:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Neither MariaDB nor PerconaDB are supported &lt;sup id=&quot;fnref:ATL_maria_null&quot;&gt;&lt;a href=&quot;#fn:ATL_maria_null&quot; class=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt; &lt;sup id=&quot;fnref:ATL_maria_null_2&quot;&gt;&lt;a href=&quot;#fn:ATL_maria_null_2&quot; class=&quot;footnote&quot;&gt;4&lt;/a&gt;&lt;/sup&gt;,&lt;/li&gt;
+  &lt;li&gt;Atlassian JIRA Commit Acceptance Plugin is only support for JIRA Server 5.0 - 6.4.13,&lt;/li&gt;
+  &lt;li&gt;For JIRA Server 6.1 - 7.1.4, we can use Midori Commit Policy Plugin for JIRA &lt;sup id=&quot;fnref:CAP02&quot;&gt;&lt;a href=&quot;#fn:CAP02&quot; class=&quot;footnote&quot;&gt;5&lt;/a&gt;&lt;/sup&gt; with a paid license.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I provide a installation &lt;code class=&quot;highlighter-rouge&quot;&gt;sh&lt;/code&gt; file for quick installation and configuration of MySQL, see appendix below.&lt;/p&gt;
+
+&lt;h2 id=&quot;create-a-project-in-jira&quot;&gt;Create a Project in JIRA&lt;/h2&gt;
+
+&lt;p&gt;Supposing that we have:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Deployed the JIRA Server, and can access &lt;code class=&quot;highlighter-rouge&quot;&gt;https://jira.domain.com&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;Configured the User and Group,&lt;/li&gt;
+  &lt;li&gt;Login as the JIRA administrator.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We now create a project with the JIRA code &lt;code class=&quot;highlighter-rouge&quot;&gt;LS&lt;/code&gt;, the ticket number of
+each issue will be prepended with &lt;code class=&quot;highlighter-rouge&quot;&gt;LS&lt;/code&gt;, such as:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;LS-101 Hello JIRA&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;import-legacy-issue-from-bitbucket-cloud&quot;&gt;Import Legacy Issue from Bitbucket Cloud&lt;/h2&gt;
+
+&lt;p&gt;JIRA administrator can import the legacy issue from Bitbucket Cloud into JIRA:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;http://jira.domain.com/secure/admin/views/ExternalImport1.jspa&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;setup-the-dvcs-accounts-in-jira-with-bitbucket-cloud&quot;&gt;Setup the DVCS Accounts in JIRA with Bitbucket Cloud&lt;/h2&gt;
+
+&lt;p&gt;When we push the code to Bitbucket Cloud, we want to disply the commit history
+in JIRA issue page, setting up the OAuth in Bitbucket Cloud and DVCS Accounts
+in JIRA will satisfy our request.&lt;/p&gt;
+
+&lt;p&gt;Please read the official guide &lt;sup id=&quot;fnref:ATL_dvcs&quot;&gt;&lt;a href=&quot;#fn:ATL_dvcs&quot; class=&quot;footnote&quot;&gt;6&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
+
+&lt;p&gt;According to the Atlassian Support, the DVCS will refresh status
+from Bitbucket Cloud every 60 minutes &lt;sup id=&quot;fnref:DCON-379&quot;&gt;&lt;a href=&quot;#fn:DCON-379&quot; class=&quot;footnote&quot;&gt;7&lt;/a&gt;&lt;/sup&gt;. That means when we
+push commits to Bitbucket Cloud, the JIRA issue page may not reflect
+the latest commits immediately.&lt;/p&gt;
+
+&lt;h2 id=&quot;setup-the-jira-link-in-bitbucket-cloud&quot;&gt;Setup the JIRA Link in Bitbucket Cloud&lt;/h2&gt;
+
+&lt;p&gt;We want to display the hyperlink in Bitbucket Cloud commit history page.
+Adding a JIRA link in repository setting will satisfy our request.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Go to repository setting, find the Integrations - Links:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;https://bitbucket.org/scozv/ls-core-restful/admin/links&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Click the JIRA icon,&lt;/li&gt;
+  &lt;li&gt;Fill the JIRA website and the JIRA project code, such as &lt;code class=&quot;highlighter-rouge&quot;&gt;LS&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Save&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For the new source commit, such as:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;git commit -avm &lt;span class=&quot;s1&quot;&gt;&#39;LS-101 Hello JIRA&#39;&lt;/span&gt;
+git push&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;we have the hyperlink in commit history page of Bitbucket Cloud, leading to:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;http://jira.domain.me/browse/LS-101&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;change-the-legacy-issue-number-of-git-history-ie-fully-migrating&quot;&gt;Change the Legacy Issue Number of Git History, ie. Fully Migrating&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Attention:&lt;/strong&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;strong&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;sha1&lt;/code&gt; of all commits will be rewritten (changed) in the step below;&lt;/strong&gt;&lt;/p&gt;
+
+  &lt;p&gt;&lt;strong&gt;Make backup and decision.&lt;/strong&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In individual Bitbucket Cloud build-in Issue System, the
+issue number is started from &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt;. For Bitbucket Cloud, we commit code
+using message such as below:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;git commit -avm &lt;span class=&quot;s1&quot;&gt;&#39;fix issue #101 Hello Bitbucket&#39;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;After importing the Bitbucket Issue into JIRA System, issue &lt;code class=&quot;highlighter-rouge&quot;&gt;101&lt;/code&gt; becomes to
+issue &lt;code class=&quot;highlighter-rouge&quot;&gt;LS-101&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;We want to change the Legacy git history to:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-html&quot; data-lang=&quot;html&quot;&gt;fix issue LS-101 Hello Bitbucket&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We need the Message Filter of git command &lt;sup id=&quot;fnref:GIT&quot;&gt;&lt;a href=&quot;#fn:GIT&quot; class=&quot;footnote&quot;&gt;8&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;–msg-filter &lt;command /&gt;&lt;/p&gt;
+
+  &lt;p&gt;This is the filter for rewriting the commit messages. The argument is evaluated in the shell with the original commit message on standard input; its standard output is used as the new commit message.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Here is the script:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# The `sha1` of all commits will be rewritten (changed) in the step below;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# Make backup and decision.&lt;/span&gt;
+git clone --no-hardlinks git@bitbucket.org:scozv/ls-core-restful.git
+git filter-branch -f --msg-filter &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;s1&quot;&gt;&#39;sed &quot;s/#\([0-9][0-9]*\)/LS-\1/g&quot;&#39;&lt;/span&gt;
+git reset --hard
+git gc --aggressive
+git prune&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;not-a-fully-migrating&quot;&gt;NOT a Fully Migrating&lt;/h1&gt;
+
+&lt;p&gt;I haven’t found the solution for:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Resolved JIRA issue is not displayed as a &lt;del&gt;deleted HTML element&lt;/del&gt; in Bitbucket Cloud,&lt;/li&gt;
+  &lt;li&gt;Bitbucket Cloud doesn’t reject the bad commit if the commit violates the Acceptance Policy.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For the 2nd issue, Atlassian Support replied me as:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Unfortunately, this is not possible to be done on Bitbucket Cloud for now.
+We have a feature request on this though:
+  https://bitbucket.org/site/master/issues/5658&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1 id=&quot;appendix&quot;&gt;Appendix&lt;/h1&gt;
+
+&lt;h2 id=&quot;jira-installation-script&quot;&gt;JIRA Installation Script&lt;/h2&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# JAVA&lt;/span&gt;
+sudo add-apt-repository ppa:openjdk-r/ppa
+sudo apt-get update
+sudo apt-get install -y openjdk-8-jdk openjdk-8-jre openjdk-8-jre-headless
+
+&lt;span class=&quot;c&quot;&gt;# MySQL&lt;/span&gt;
+sudo apt-get install -y mysql-server mysql-client
+
+&lt;span class=&quot;c&quot;&gt;# JIRA&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# JIRA_BINARY=&quot;atlassian-jira-software-7.1.2-jira-7.1.2-x64.bin&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_BINARY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;atlassian-jira-6.4.13-x64.bin&quot;&lt;/span&gt;
+wget -nc -P ~/Downloads/ &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;https://www.atlassian.com/software/jira/downloads/binary/&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$JIRA_BINARY&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+
+chmod a+x ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$JIRA_BINARY&lt;/span&gt;
+sudo bash ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$JIRA_BINARY&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+
+sudo vi &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/setenv.sh
+&lt;span class=&quot;c&quot;&gt;# JVM_SUPPORT_RECOMMENDED_ARGS=&quot;-Datlassian.plugins.enable.wait=300 -Xms64m -Xmx256m -Xss2m -XX:MaxPermSize=128m&quot;&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;c&quot;&gt;# sudo bash /opt/atlassian/jira/uninstall&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# JIRA MySQL&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://confluence.atlassian.com/jira/connecting-jira-to-mysql-185729489.html&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;MS_JIRA_DB&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;jiradb
+&lt;span class=&quot;nv&quot;&gt;MS_JIRA_DBUSER&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;jiradbuser
+&lt;span class=&quot;nv&quot;&gt;MS_JIRA_PWD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*ABCDEFJHIGKLMNOPQRSTUVWXYZ&quot;&lt;/span&gt;
+mysql -uroot -p
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;CREATE USER &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_DBUSER&#39;&lt;/span&gt;@&lt;span class=&quot;s1&quot;&gt;&#39;localhost&#39;&lt;/span&gt; IDENTIFIED BY PASSWORD &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_PWD&#39;&lt;/span&gt;;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;CREATE DATABASE &lt;span class=&quot;nv&quot;&gt;$MS_JIRA_DB&lt;/span&gt; CHARACTER SET utf8 COLLATE utf8_bin;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER,INDEX
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;| on &lt;span class=&quot;nv&quot;&gt;$MS_JIRA_DB&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; TO &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_DBUSER&#39;&lt;/span&gt;@&lt;span class=&quot;s1&quot;&gt;&#39;localhost&#39;&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;| IDENTIFIED BY PASSWORD &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_PWD&#39;&lt;/span&gt;;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;flush privileges;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;SHOW GRANTS FOR &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_DBUSER&#39;&lt;/span&gt;@&lt;span class=&quot;s1&quot;&gt;&#39;localhost&#39;&lt;/span&gt;;
+
+&lt;span class=&quot;nv&quot;&gt;MYSQL_CONF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/etc/mysql/my.cnf&quot;&lt;/span&gt;
+sudo cp &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;.before_JIRA
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/^default_storage_engine/c\default_storage_engine=INNODB&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/^max_allowed_packet/c\max_allowed_packet=256M&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/innodb_log_file_size/c\innodb_log_file_size=256M&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/^sql_mode.*=.*NO_AUTO_VALUE_ON_ZERO/c\#sql_mode = NO_AUTO_VALUE_ON_ZERO&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo bash /etc/init.d/mysql stop
+sudo bash /etc/init.d/mysql start
+
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;MYSQL_J_BINARY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mysql-connector-java-5.1.38.tar.gz&quot;&lt;/span&gt;
+wget -nc -P ~/Downloads/ &lt;span class=&quot;s2&quot;&gt;&quot;http://dev.mysql.com/get/Downloads/Connector-J/&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$MYSQL_J_BINARY&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+sudo tar zxf ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$MYSQL_J_BINARY&lt;/span&gt; -C &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/lib/
+sudo cp &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/lib/mysql-connector-java-5.1.38/mysql-connector-java-5.1.38-bin.jar  &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/lib/
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;JAVA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/lib/jvm/java-8-openjdk-amd64/
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/config.sh
+&lt;span class=&quot;c&quot;&gt;# https://confluence.atlassian.com/jira/connecting-jira-to-mysql-185729489.html&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;c&quot;&gt;## JIRA 6 only&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://marketplace.atlassian.com/plugins/com.atlassian.jira.ext.commitacceptance/server/installation&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://confluence.atlassian.com/display/UPM/Installing+Add-ons#Installingadd-ons-installingversion1InstallingPlugins1typeadd-onsinJIRAandBamboo&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+&lt;span class=&quot;nv&quot;&gt;JIRA_CAP_BINARY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;commitacceptance-1.6.0.jar&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_ADDON_SITE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://marketplace-cdn.atlassian.com/files/artifact/5f9ba63d-ee6c-4633-9b7a-a26c644a2434&quot;&lt;/span&gt;
+wget -nc -P ~/Downloads/ &lt;span class=&quot;nv&quot;&gt;$JIRA_ADDON_SITE&lt;/span&gt;/&lt;span class=&quot;nv&quot;&gt;$JIRA_CAP_BINARY&lt;/span&gt;
+sudo cp ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$JIRA_CAP_BINARY&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/atlassian-jira/WEB-INF/lib/
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;c&quot;&gt;## stop-jira&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash /etc/init.d/mysql stop
+&lt;span class=&quot;c&quot;&gt;## start-jira&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+sudo bash /etc/init.d/mysql start
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:CAP01&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://marketplace.atlassian.com/plugins/com.atlassian.jira.ext.commitacceptance/server/overview&quot;&gt;JIRA Commit Acceptance Plugin&lt;/a&gt; by Atlassian, Version 1.6.0 • JIRA Server 5.0 - 6.4.13 • Released 2012-02-22 &lt;a href=&quot;#fnref:CAP01&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:ATL_jira_install&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://confluence.atlassian.com/adminjiraserver071/installing-jira-applications-on-linux-802592173.html&quot;&gt;Installing JIRA applications on Linux&lt;/a&gt; &lt;a href=&quot;#fnref:ATL_jira_install&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:ATL_maria_null&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://confluence.atlassian.com/adminjiraserver071/supported-platforms-802592168.html&quot;&gt;JIRA Supported Platforms&lt;/a&gt; &lt;a href=&quot;#fnref:ATL_maria_null&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:ATL_maria_null_2&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://jira.atlassian.com/browse/JRA-32347&quot;&gt;JIRA should support MariaDB&lt;/a&gt; &lt;a href=&quot;#fnref:ATL_maria_null_2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:CAP02&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://marketplace.atlassian.com/plugins/com.midori.jira.plugin.jira-commit-policy-plugin/server/overview&quot;&gt;Commit Policy Plugin for JIRA&lt;/a&gt; by Midori Global Consulting Kft. &lt;a href=&quot;#fnref:CAP02&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:ATL_dvcs&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://confluence.atlassian.com/bitbucket/connect-bitbucket-cloud-to-jira-server-applications-814208991.html&quot;&gt;Connect Bitbucket Cloud to JIRA Server applications&lt;/a&gt; &lt;a href=&quot;#fnref:ATL_dvcs&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:DCON-379&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://jira.atlassian.com/browse/DCON-379&quot;&gt;Allow configurable refresh times for commit checks&lt;/a&gt; &lt;a href=&quot;#fnref:DCON-379&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:GIT&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://git-scm.com/docs/git-filter-branch&quot;&gt;git-filter-branch - Rewrite branches&lt;/a&gt; &lt;a href=&quot;#fnref:GIT&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>How Do We Apply the Hyde Theme to Existing Jekyll Site?</title>
+   <link href="https://scozv.github.io/blog/guide/2016/03/18/how-do-we-apply-the-hyde-theme-to-existing-jekyll-site"/>
+   <updated>2016-03-18T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/guide/2016/03/18/how-do-we-apply-the-hyde-theme-to-existing-jekyll-site</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;abstract&quot;&gt;Abstract&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This article will describe the process of applying Hyde theme on my existing Jekyll Bootstrap site.
+And this approach can be used for applying any theme of Jekyll. The main ideas of integrating the 3rd Jekyll Theme
+are:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;knowing the basic structure of Jekyll site,&lt;/li&gt;
+    &lt;li&gt;knowing the basic workflow of rendering HTML from Jekyll scripts,&lt;/li&gt;
+    &lt;li&gt;comparing the code differences between &lt;code class=&quot;highlighter-rouge&quot;&gt;Hyde&lt;/code&gt; and your site,&lt;/li&gt;
+    &lt;li&gt;replacing code and test.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#before-applying&quot; id=&quot;markdown-toc-before-applying&quot;&gt;Before Applying…&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#start-a-branch-for-hyde&quot; id=&quot;markdown-toc-start-a-branch-for-hyde&quot;&gt;Start a Branch for Hyde&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#no-need-to-be-a-master-of-css-or-html&quot; id=&quot;markdown-toc-no-need-to-be-a-master-of-css-or-html&quot;&gt;NO Need to be a Master of CSS or HTML&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#introduction-of-jekyll&quot; id=&quot;markdown-toc-introduction-of-jekyll&quot;&gt;Introduction of Jekyll&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#the-directory-structure-of-jekyll&quot; id=&quot;markdown-toc-the-directory-structure-of-jekyll&quot;&gt;the Directory Structure of Jekyll&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#html-rendering-workflow&quot; id=&quot;markdown-toc-html-rendering-workflow&quot;&gt;HTML Rendering Workflow&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#layouthtml-the-entrance-of-html&quot; id=&quot;markdown-toc-layouthtml-the-entrance-of-html&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_layout/*.html&lt;/code&gt;, the Entrance of HTML&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#includesjb-the-utilities-scripts-as-the-html-rendering-helper&quot; id=&quot;markdown-toc-includesjb-the-utilities-scripts-as-the-html-rendering-helper&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/JB/*&lt;/code&gt;, the Utilities Scripts as the HTML Rendering Helper&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#includesthemes-the-layout-design-of-the-theme&quot; id=&quot;markdown-toc-includesthemes-the-layout-design-of-the-theme&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/themes/&lt;/code&gt;, the Layout Design of the Theme&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#assetsthemes-the-css-design-javascript-or-image-of-the-theme&quot; id=&quot;markdown-toc-assetsthemes-the-css-design-javascript-or-image-of-the-theme&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./assets/themes/&lt;/code&gt;, the CSS design, JavaScript or image of the Theme&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#steps-of-installing-hyde-into-existing-site&quot; id=&quot;markdown-toc-steps-of-installing-hyde-into-existing-site&quot;&gt;Steps of Installing Hyde into Existing Site&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#conclusions&quot; id=&quot;markdown-toc-conclusions&quot;&gt;Conclusions&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#encore&quot; id=&quot;markdown-toc-encore&quot;&gt;Encore&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;before-applying&quot;&gt;Before Applying…&lt;/h1&gt;
+
+&lt;h2 id=&quot;start-a-branch-for-hyde&quot;&gt;Start a Branch for Hyde&lt;/h2&gt;
+
+&lt;p&gt;Applying the Hyde to your existing Jekyll site is not a one-click step, so open a branch for Hyde applying,
+In case when you fail to apply Hyde and you want to revert changes and start over again.&lt;/p&gt;
+
+&lt;h2 id=&quot;no-need-to-be-a-master-of-css-or-html&quot;&gt;NO Need to be a Master of CSS or HTML&lt;/h2&gt;
+
+&lt;p&gt;I have very limited experience on CSS or HTML, so CSS for me is like RegEx, I can always check the CSS references,
+or seek help from stackoverflow when I face a styling problem.&lt;/p&gt;
+
+&lt;h1 id=&quot;introduction-of-jekyll&quot;&gt;Introduction of Jekyll&lt;/h1&gt;
+
+&lt;h2 id=&quot;the-directory-structure-of-jekyll&quot;&gt;the Directory Structure of Jekyll&lt;/h2&gt;
+
+&lt;p&gt;Check the official document on the folder structure of Jekyll:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://jekyllrb.com/docs/structure/&quot;&gt;Directory structure&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;For me, I used &lt;a href=&quot;https://github.com/dbtek/jekyll-bootstrap-3&quot;&gt;Jekyll-bootstrap 3&lt;/a&gt; before.
+the directory structure has a little bit difference comparing with the original Jekyll.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;.
+├── assets
+|   ├── css
+|   ├── js
+|   ├── img
+|   └── themes
+|       ├── &lt;span class=&quot;c&quot;&gt;# hyde&lt;/span&gt;
+|       └── bootstrap
+├── _includes
+|   ├── JB
+|   |   ├── comments_render_script
+|   |   ├── pages_list_script
+|   |   ├── analytics_render_script
+|   └── themes
+|       ├── &lt;span class=&quot;c&quot;&gt;# hyde&lt;/span&gt;
+|       └── bootstrap
+|           ├── default.html
+|           ├── page.html
+|           └── post.html
+├── _layouts
+|   ├── default.html
+|   ├── page.html
+|   └── post.html&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Notice that there are two folders named &lt;code class=&quot;highlighter-rouge&quot;&gt;themes&lt;/code&gt;, I will explain more letter.
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;Hyde&lt;/code&gt; theme will be installed into these two &lt;code class=&quot;highlighter-rouge&quot;&gt;themes/&lt;/code&gt; folder.
+You may read the source code and it’s easy to understand their usage.&lt;/p&gt;
+
+&lt;h2 id=&quot;html-rendering-workflow&quot;&gt;HTML Rendering Workflow&lt;/h2&gt;
+
+&lt;p&gt;This section will list the steps of rendering HTML by Jekyll.
+Again, reading the source code is useful, and it can help you apply other plugin / themes
+to your existing Jekyll site.&lt;/p&gt;
+
+&lt;h3 id=&quot;layouthtml-the-entrance-of-html&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_layout/*.html&lt;/code&gt;, the Entrance of HTML&lt;/h3&gt;
+
+&lt;p&gt;the &lt;code class=&quot;highlighter-rouge&quot;&gt;_layout&lt;/code&gt; folder is used for:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;configuration of the theme name,&lt;/li&gt;
+  &lt;li&gt;including the theme layout files, or installing the &lt;strong&gt;part&lt;/strong&gt; of theme into your site.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Read the source code of any &lt;code class=&quot;highlighter-rouge&quot;&gt;html&lt;/code&gt; file in &lt;code class=&quot;highlighter-rouge&quot;&gt;_layout&lt;/code&gt; folder, and notice that:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;a variable named &lt;code class=&quot;highlighter-rouge&quot;&gt;layout.theme.name&lt;/code&gt; has been defined in these &lt;code class=&quot;highlighter-rouge&quot;&gt;html&lt;/code&gt; files, and it may be used for Jekyll 3.
+see &lt;a href=&quot;https://github.com/scozv/scozv.github.com/issues/15#issuecomment-195689664&quot;&gt;issue #15&lt;/a&gt;,&lt;/li&gt;
+  &lt;li&gt;make sure the path correct in &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;include&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;includesjb-the-utilities-scripts-as-the-html-rendering-helper&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/JB/*&lt;/code&gt;, the Utilities Scripts as the HTML Rendering Helper&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;JB&lt;/code&gt; stands for &lt;code class=&quot;highlighter-rouge&quot;&gt;Jekyll Bootstrap&lt;/code&gt;, in this folder, you can find many useful scripts that are used for
+rendering a &lt;code class=&quot;highlighter-rouge&quot;&gt;part&lt;/code&gt; of HTML:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;How do you want to display the comment section in your post,&lt;/li&gt;
+  &lt;li&gt;define some global variable, see &lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/JB/setup&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The scripts in &lt;code class=&quot;highlighter-rouge&quot;&gt;JB/&lt;/code&gt; are mainly used in &lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/themes/*&lt;/code&gt;,
+You will figure out the usage of utilities by searching &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;include&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;_includes/JB/setup&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;includesthemes-the-layout-design-of-the-theme&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/themes/&lt;/code&gt;, the Layout Design of the Theme&lt;/h3&gt;
+
+&lt;p&gt;The HTML layout design of theme, Jekyll Bootstrap or Hyde, can be found in this folder.&lt;/p&gt;
+
+&lt;h3 id=&quot;assetsthemes-the-css-design-javascript-or-image-of-the-theme&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./assets/themes/&lt;/code&gt;, the CSS design, JavaScript or image of the Theme&lt;/h3&gt;
+
+&lt;h1 id=&quot;steps-of-installing-hyde-into-existing-site&quot;&gt;Steps of Installing Hyde into Existing Site&lt;/h1&gt;
+
+&lt;p&gt;Comparing the &lt;code class=&quot;highlighter-rouge&quot;&gt;Hyde&lt;/code&gt; project to your existing site will tell you which files you need
+to install. The steps below based on my previous site.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;open a branch for Hyde,&lt;/li&gt;
+  &lt;li&gt;put &lt;code class=&quot;highlighter-rouge&quot;&gt;hyde/public&lt;/code&gt; into your &lt;code class=&quot;highlighter-rouge&quot;&gt;./assets/themes/hyde/&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;put &lt;code class=&quot;highlighter-rouge&quot;&gt;hyde/_layout&lt;/code&gt; into your &lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/themes/hyde/&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;also put &lt;code class=&quot;highlighter-rouge&quot;&gt;hyde/_includes&lt;/code&gt; into your &lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/themes/hyde/&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;see commit &lt;a href=&quot;https://github.com/scozv/scozv.github.com/commit/235f6f6b303988a2208404ea071c9b2c05a97031?diff=split&quot;&gt;235f6f6b3039&lt;/a&gt;
+for files including,&lt;/li&gt;
+  &lt;li&gt;compare the existing theme folder with &lt;code class=&quot;highlighter-rouge&quot;&gt;hyde&lt;/code&gt; to determine the changes on &lt;code class=&quot;highlighter-rouge&quot;&gt;hyde&lt;/code&gt; layout, for me,
+I compared &lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/theme/bootstrap&lt;/code&gt; with &lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/theme/hyde&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;do a code review of &lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/theme/hyde&lt;/code&gt; based on your comparasion, make sure you merge the existing layout and
+correct path into &lt;code class=&quot;highlighter-rouge&quot;&gt;Hyde&lt;/code&gt; theme, see my commit
+&lt;a href=&quot;https://github.com/scozv/scozv.github.com/commit/1b2f41a34f3a81e7789a4dcaf4750163ef7fda28&quot;&gt;1b2f41a3&lt;/a&gt;,&lt;/li&gt;
+  &lt;li&gt;change the theme name in &lt;code class=&quot;highlighter-rouge&quot;&gt;_config.yml&lt;/code&gt;, see my commit
+&lt;a href=&quot;https://github.com/scozv/scozv.github.com/commit/4743d50aa0a04456005b1ced9c480880e342dd69&quot;&gt;4743d50a&lt;/a&gt;,&lt;/li&gt;
+  &lt;li&gt;customize your site, see
+    &lt;ul&gt;
+      &lt;li&gt;git commit -m ‘&lt;a href=&quot;https://github.com/scozv/scozv.github.com/commit/b3c26850d164f77485e1c3cd041a61680cffc92c&quot;&gt;change on footer&lt;/a&gt;’,&lt;/li&gt;
+      &lt;li&gt;git commit -m ‘&lt;a href=&quot;https://github.com/scozv/scozv.github.com/commit/4291fdc0dc42ad18d5fd72c1fbf2fd92d6a60fd9&quot;&gt;enhanced related_posts&lt;/a&gt;’,&lt;/li&gt;
+      &lt;li&gt;git commit -m ‘&lt;a href=&quot;https://github.com/scozv/scozv.github.com/commit/89e9d8fdd22780d714f5fe12ae2180be0e5c1074&quot;&gt;tags and about&lt;/a&gt;’.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;test and release.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;conclusions&quot;&gt;Conclusions&lt;/h1&gt;
+
+&lt;p&gt;For installing the theme of Jekyll:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;git flow feature start theme_name&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;copy CSS design into &lt;code class=&quot;highlighter-rouge&quot;&gt;assets&lt;/code&gt; folder,&lt;/li&gt;
+  &lt;li&gt;copy layout design into &lt;code class=&quot;highlighter-rouge&quot;&gt;_inlucdes/themes&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;change the configuration,&lt;/li&gt;
+  &lt;li&gt;compare code differences for issue solving,&lt;/li&gt;
+  &lt;li&gt;test and improving.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;encore&quot;&gt;Encore&lt;/h1&gt;
+
+&lt;p&gt;I am not with rich experiences on CSS and Jekyll, even on ruby. I mostly
+write &lt;code class=&quot;highlighter-rouge&quot;&gt;Scala&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;React.js /&amp;gt;&lt;/code&gt;, so I will not spend much time on Jekyll
+theme unless someday, I have to.&lt;/p&gt;
+
+&lt;p&gt;So, in my opinion, Jekyll is used for writing the posts with coding, not used to
+keep decorating with Themes, unless designing becomes my major.&lt;/p&gt;
+
+&lt;p&gt;So, is there anyone can help me on a little design requirement below?&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;For the post page including a Table of Content, short as &lt;code class=&quot;highlighter-rouge&quot;&gt;[toc]&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;reader scroll down the page, when he or she cannot see the &lt;code class=&quot;highlighter-rouge&quot;&gt;[toc]&lt;/code&gt;,&lt;/li&gt;
+  &lt;li&gt;I want to move the &lt;code class=&quot;highlighter-rouge&quot;&gt;[toc]&lt;/code&gt; to the left sidebar automaticly,&lt;/li&gt;
+  &lt;li&gt;the mobile screen may need for another design,&lt;/li&gt;
+  &lt;li&gt;the main idea of this requirement is to select the section easily.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Thanks.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>A Version Controlled Project Workflow for Requirement, Coding and Continuous Integration</title>
+   <link href="https://scozv.github.io/blog/pattern/2015/09/04/a-vcs-project-workflow-for-requirement-coding-and-ci"/>
+   <updated>2015-09-04T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/pattern/2015/09/04/a-vcs-project-workflow-for-requirement-coding-and-ci</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;abstract&quot;&gt;Abstract&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This article introduces a project workflow based on VCS
+(Version Controll System). The principle of this workflow is
+&lt;strong&gt;Put everything into VCS&lt;/strong&gt;.&lt;/p&gt;
+
+  &lt;p&gt;For documents, Word or PDF files are not recommended in this workflow,
+just because they are difficult to be compared (such as, by &lt;code class=&quot;highlighter-rouge&quot;&gt;git diff&lt;/code&gt;).
+So we write the documents in Markdown or LaTeX.&lt;/p&gt;
+
+  &lt;p&gt;Besides, this article will cover, but it is mainly written in Chinese:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Issue system for tracking task&lt;/li&gt;
+    &lt;li&gt;Bitbucket&lt;/li&gt;
+    &lt;li&gt;c9.io&lt;/li&gt;
+    &lt;li&gt;Markdown in 5 minutes&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>Introduction of Building Documents with LaTeX</title>
+   <link href="https://scozv.github.io/blog/guide/2015/08/12/introduction-of-building-documents-with-latex"/>
+   <updated>2015-08-12T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/guide/2015/08/12/introduction-of-building-documents-with-latex</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;abstract&quot;&gt;Abstract&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This article will give brief introduction for &lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;, then discuss a few issues during using &lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;
+and how to display &lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt; equation on web page.&lt;/p&gt;
+
+  &lt;p&gt;This article is mainly written in Chinese.&lt;/p&gt;
+
+  &lt;p&gt;If you want to know the KaTeX with Jekyll,
+you can reach &lt;a href=&quot;http://xuc.me/blog/KaTeX-and-Jekyll/&quot;&gt;this post&lt;/a&gt;.
+A &lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt; template will be provided.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;h1 id=&quot;katex-not-mathjax&quot;&gt;KaTeX, not MathJax&lt;/h1&gt;
+
+&lt;p&gt;The render speed of &lt;code class=&quot;highlighter-rouge&quot;&gt;MathJax&lt;/code&gt; is too slow,
+while the &lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt; from &lt;a href=&quot;https://khan.github.io/KaTeX/&quot;&gt;Khan Acedemy&lt;/a&gt; team,
+will render all equation with pure &lt;code class=&quot;highlighter-rouge&quot;&gt;CSS&lt;/code&gt;, and it will render your &lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;
+equation as fast as you can imagine.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;e^x = \lim_{n\rightarrow \infty} \sum_{t=0}^{n} ( \frac{1}{t!}\cdot x^t )= \sum_{t=0}^{\infty} (1 + x + \frac{1}{2!}x^2+\frac{1}{3!}x^3+ ... + \frac{1}{t!}\cdot x^t)&lt;/script&gt;
+
+&lt;p&gt;If you want to know more details with KaTeX for Jekyll,
+you can read &lt;a href=&quot;http://xuc.me/blog/KaTeX-and-Jekyll/&quot;&gt;this post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;a-sample-of-latex-template&quot;&gt;A Sample of LaTeX Template&lt;/h1&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt;&lt;span class=&quot;k&quot;&gt;\documentclass&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[a4paper]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;book&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% shortcut for scozv&#39;s github homepage&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;hyperref&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\scozv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;https://github.com/scozv&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% shortcut for \ding{213}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\To&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\ding&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;213&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;listings, color&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% shortcut for inline code snippet, like `code` in markdown&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% \newcommand{\cd}[1]{\colorbox[rgb]{0.86,0.86,0.86}{\lstinline$#1$}}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\cd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\lstinline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;$}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% shortcut for section, subsection, subsubsection&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% mb stands for member&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\mb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\subsection*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;#1&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\mmb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\subsubsection*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;#1&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% set style for multiple lines code snippet&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\lstset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;numbers=left, numberstyle=&lt;span class=&quot;k&quot;&gt;\tiny&lt;/span&gt;
+	, stepnumber=2, numbersep=5pt
+	, backgroundcolor=&lt;span class=&quot;k&quot;&gt;\color&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[rgb]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;0.86,0.86,0.86&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	, basicstyle=&lt;span class=&quot;k&quot;&gt;\footnotesize\ttfamily&lt;/span&gt;
+	, breaklines=true&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% set index&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;multind&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeindex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;idx&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;finance&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\idxf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;idx&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;finance&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;#1&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% heading&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setcounter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;secnumdepth&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;3&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% set multi-ref&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;multibib&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;References of Programming&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcites&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;c&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;References of Finance&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcites&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;f&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% CJK for XeTeX&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% http://www.ctan.org/pkg/xetexref&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% https://zh.wikipedia.org/wiki/XeTeX&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% http://ctan.org/pkg/xecjk&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;xltxtra, xeCJK&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setCJKmainfont&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[BoldFont=Adobe Heiti Std]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Adobe Song Std&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\xeCJKsetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;AutoFakeBold=true, CJKmath=true&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% Latin&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;fontspec, pifont&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setmainfont&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Gentium Book Basic&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;%[ItalicFont=Gentium Book Basic Bold]&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% intertext, trigleq and proof&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;amsmath, amssymb, amsthm&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% bold emphasized text&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\DeclareRobustCommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\em&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\%&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;nomath&lt;span class=&quot;k&quot;&gt;\em&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\if&lt;/span&gt; b&lt;span class=&quot;k&quot;&gt;\expandafter\@&lt;/span&gt;car&lt;span class=&quot;k&quot;&gt;\f&lt;/span&gt;@series&lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;nil
+  &lt;span class=&quot;k&quot;&gt;\normalfont&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\bfseries&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\fi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% tiny margin note&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\long\def\@&lt;/span&gt;ympar#1&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\%&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;savemarbox&lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;marbox&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\small&lt;/span&gt; #1&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\global\setbox\@&lt;/span&gt;currbox&lt;span class=&quot;k&quot;&gt;\copy\@&lt;/span&gt;marbox
+  &lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;xympar&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% reduce the space of itemize&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;.5&lt;span class=&quot;k&quot;&gt;\itemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\addtolength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;-7pt&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\let\olditem\item&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\renewcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\itemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\olditem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;\begin{document}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Introduction of Building Documents with LaTeX&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\author&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Scott&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Aug, 12, 2015&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\maketitle&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;\chapter*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\centering&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;\begin{normalsize}&lt;/span&gt;Abstract&lt;span class=&quot;nt&quot;&gt;\end{normalsize}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;\begin{quotation}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\noindent&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;% abstract text&lt;/span&gt;
+This artical will give brief introduction for TeX and LaTeX,
+then discuss a few issues during using LaTeX
+and how to display LaTeX eqation on web page.
+Finally, a LaTeX template will be attached in Appendix.
+&lt;span class=&quot;nt&quot;&gt;\end{quotation}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\clearpage&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% no indent of second ... paragraphs of each section&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\parindent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;0pt&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\parskip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;1.3ex plus 0.5ex minus 0.3ex&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\part&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Part I&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;C01-01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;p1&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;c01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\part&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Part II&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;C02-01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;p2&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;c01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;C02-02&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;p2&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;c02&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;\cleardoublepage&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\phantomsection&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\addcontentsline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;toc&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;chapter&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographystylec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;GBT7714-2005NLang&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographyc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;code/ref&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
+  &lt;span class=&quot;c&quot;&gt;% Put section depth at the same level as \chapter.&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\renewcommand*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\toclevel&lt;/span&gt;@section&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\printindex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;idx&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;finance&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;Index of Finance&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;c&quot;&gt;% Put section depth back to its default value.&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\renewcommand*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\toclevel&lt;/span&gt;@section&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;1&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;  
+
+  &lt;span class=&quot;k&quot;&gt;\cleardoublepage&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\phantomsection&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\addcontentsline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;toc&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;chapter&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographystylef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;GBT7714-2005NLang&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographyf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;finance/ref&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;\appendix&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\part&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Appendix&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Appendix I&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;appendix&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;\end{document}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>Understand Monads in C#</title>
+   <link href="https://scozv.github.io/blog/pattern/2014/06/20/understand-monads-in-c"/>
+   <updated>2014-06-20T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/pattern/2014/06/20/understand-monads-in-c</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;abstract&quot;&gt;Abstract&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This article is a reading note for &lt;em&gt;Monads&lt;/em&gt; &lt;sup id=&quot;fnref:EL13&quot;&gt;&lt;a href=&quot;#fn:EL13&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; by Eric Lippert.
+And the note is mainly written in Chinese.&lt;/p&gt;
+
+  &lt;p&gt;For me, Monad is a pipe line, transferring the input data,
+including the operator and sending to the next port. Monad will
+calculate the input at the end of this pipe line, and will
+never break this pipe rule, nor throw error out.&lt;/p&gt;
+
+  &lt;p&gt;For more details, please read the English references.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;Eric Lippert indicates in his article &lt;sup id=&quot;fnref:EL13-8&quot;&gt;&lt;a href=&quot;#fn:EL13-8&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;You might have noticed that the asynchronous, lazy, on-demand and sequence monads all have an interesting common property: when you apply a function to any of these monads, what you get back is an object that will perform that function in the future. Essentially, the bind function takes an immutable workflow and its subsequent step, and returns you the resulting new workflow. The bind operator does not execute the workflow; it makes a new workflow out of an old one.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The bind operator is call &lt;code class=&quot;highlighter-rouge&quot;&gt;SelectMany&lt;/code&gt; in &lt;code class=&quot;highlighter-rouge&quot;&gt;C#&lt;/code&gt;, or &lt;code class=&quot;highlighter-rouge&quot;&gt;flatMap&lt;/code&gt; in &lt;code class=&quot;highlighter-rouge&quot;&gt;Scala&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Wes Dyer also summarized that we need &lt;code class=&quot;highlighter-rouge&quot;&gt;Unit&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Bind&lt;/code&gt; and the Three rules &lt;sup id=&quot;fnref:WD08&quot;&gt;&lt;a href=&quot;#fn:WD08&quot; class=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static M&amp;lt;T&amp;gt;  Unit&amp;lt;T&amp;gt;(T value);
+static M&amp;lt;R&amp;gt;  Bind&amp;lt;T, R&amp;gt;(M&amp;lt;T&amp;gt;, Func&amp;lt;T, M&amp;lt;R&amp;gt;&amp;gt;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;Left Identity&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Bind(Unit(e), k) = k(e)
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Right Identity&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Bind(m, Unit) = m
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;结合律&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Bind(m, x =&amp;gt; Bind(k(x), y =&amp;gt; h(y)) = Bind(Bind(m, x =&amp;gt; k(x)), y =&amp;gt; h(y))
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:EL13&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/category/monads&quot;&gt;Monads&lt;/a&gt;[J/OL] 2013 &lt;a href=&quot;#fnref:EL13&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13-8&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/2013/03/18/monads-part-eight/&quot;&gt;Monads, Part 8&lt;/a&gt;[J/OL] 2013.03.18 &lt;a href=&quot;#fnref:EL13-8&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:WD08&quot;&gt;
+      &lt;p&gt;Wes Dyer. &lt;a href=&quot;http://blogs.msdn.com/b/wesdyer/archive/2008/01/11/the-marvels-of-monads.aspx&quot;&gt;The Marvels of Monads&lt;/a&gt;[J/OL] 2008 &lt;a href=&quot;#fnref:WD08&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ 
+ 
+ 
+ <entry>
+   <title>How to Make Code of Algo.js Run in Node.js as in Browser</title>
+   <link href="https://scozv.github.io/blog/guide/2013/12/21/how-to-make-code-of-algojs-run-in-nodejs-as-in-browser"/>
+   <updated>2013-12-21T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/guide/2013/12/21/how-to-make-code-of-algojs-run-in-nodejs-as-in-browser</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;I have planed to run unit test by reading file as the input for algorithm like graph algorithm for a few months (see &lt;a href=&quot;https://github.com/scozv/algo-js/issues/18&quot; title=&quot;issue #18&quot;&gt;issue #18&lt;/a&gt;). However, it is not easy or effective to read local file from browser, even using &lt;code class=&quot;highlighter-rouge&quot;&gt;FileReader&lt;/code&gt; in JavaScript. An alternative way is that we can read file  using the file system of Node.js, where we write JavaScript code as in browser.&lt;/p&gt;
+
+  &lt;p&gt;So the top proiority is &lt;strong&gt;making codes run appropriately in Node.js as they run in browser&lt;/strong&gt;, including the codes of unit tests. I am going to tell the details of this process today:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Making codes of algorithm work in Node.js, and&lt;/li&gt;
+    &lt;li&gt;Making codes of unit tests work in Node.js, and&lt;/li&gt;
+    &lt;li&gt;Introduce CI into my project.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;window-and-global&quot;&gt;window and global&lt;/h2&gt;
+&lt;p&gt;In browser, we have the global variable named &lt;code class=&quot;highlighter-rouge&quot;&gt;window&lt;/code&gt; , &lt;code class=&quot;highlighter-rouge&quot;&gt;Array&lt;/code&gt; is &lt;code class=&quot;highlighter-rouge&quot;&gt;window.Array&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;Math&lt;/code&gt; is &lt;code class=&quot;highlighter-rouge&quot;&gt;window.Math&lt;/code&gt;, etc. The &lt;strong&gt;Algo.js&lt;/strong&gt; also plugs object into &lt;code class=&quot;highlighter-rouge&quot;&gt;window&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(function (sorting, undefined) {
+    sorting.mergeSort = function () {};
+})(window.Sorting = window.Sorting || {})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;So that we can sort an array in browser using the script below:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Sorting.mergeSort(3, 1, 4, 1, 5, 9, 2, 6);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;More than that, in Algo.js, I extend &lt;code class=&quot;highlighter-rouge&quot;&gt;Array&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Math&lt;/code&gt; directly:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(function (array, undefined) {
+    array.zip = function (a, b) {};
+    array.prototype.clone = function () {};
+})(window.Array = window.Array || {})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;It is not a good practice that we change the object in &lt;code class=&quot;highlighter-rouge&quot;&gt;window&lt;/code&gt; directly. But in my opinion, &lt;strong&gt;the most important part in Algo.js is Algo(rithm), not js.&lt;/strong&gt; So I just want to use a simple way, instead of introducing a global module named like &lt;code class=&quot;highlighter-rouge&quot;&gt;Algo&lt;/code&gt; which we have to write like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Algo.Sorting.mergeSort();
+Algo.Array.zip();
+Algo.Array.clone();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Following this idea of simplification, I load the code of algorithm into the global variable in Node.js named &lt;code class=&quot;highlighter-rouge&quot;&gt;global&lt;/code&gt; (see &lt;a href=&quot;https://github.com/scozv/algo-js/blob/master/qunit/q.js&quot; title=&quot;a file named q.js&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./qunit/q.js&lt;/code&gt;&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;window = global;
+
+require(&#39;../src/t.js&#39;)
+require(&#39;../src/x.array.js&#39;);
+require(&#39;../src/sorting.js&#39;);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Look, we give the &lt;code class=&quot;highlighter-rouge&quot;&gt;global&lt;/code&gt; an alias name at first, so that we do not need to change any codes of algorithm. Again, my idea of simplification is that:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;It is not a good practice that we change the object in &lt;code class=&quot;highlighter-rouge&quot;&gt;global&lt;/code&gt; directly. But the most important part in Algo.js is Algo(rithm), not js.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;By the way, I did try to exposure module using &lt;code class=&quot;highlighter-rouge&quot;&gt;module.exports&lt;/code&gt;, but I failed to figure out a way, in Node.js, to exposure ONLY one module named &lt;code class=&quot;highlighter-rouge&quot;&gt;Sorting&lt;/code&gt; from three files: sorting.js, sorting.mergeSort.js, and sorting.quickSort.js as they are something like partial class.&lt;/p&gt;
+
+&lt;h2 id=&quot;node-qunit&quot;&gt;node-qunit&lt;/h2&gt;
+&lt;p&gt;After loading objects of algorithm into &lt;code class=&quot;highlighter-rouge&quot;&gt;global&lt;/code&gt;, we are going to find out how to run previous codes of unit test in Node.js without modifying test scripts.&lt;/p&gt;
+
+&lt;p&gt;We use the project &lt;a href=&quot;https://github.com/kof/node-qunit&quot; title=&quot;node-qunit, Port of QUnit unit testing framework to nodejs&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;node-qunit&lt;/code&gt;&lt;/a&gt;, which allow us to run unit test like this:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ cd algo-js
+$ npm install node-qunit
+$ node # or nodejs in ubuntu
+&amp;gt; require(&#39;./qunit/q.js&#39;); /*loading algorithm code into global*/
+&amp;gt; var qunit = require(&#39;qunit&#39;);
+&amp;gt; qunit.run({
+&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; code: &#39;./qunit/q.js&#39;,
+&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; tests: [&#39;./qunit/q-sorting.js&#39;]},
+&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; function (err, report) {
+&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; 	console.log(err ? err : report);
+&amp;gt;&amp;gt;&amp;gt;&amp;gt;&amp;gt; });
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;grunt&quot;&gt;Grunt&lt;/h2&gt;
+&lt;p&gt;Grunt, as it says, is a JavaScript task runner. If you configure your project, you will run unit test using command below which helps us use Continuous Integration:
+&lt;code class=&quot;highlighter-rouge&quot;&gt;$ grunt test&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;We use &lt;a href=&quot;https://npmjs.org/package/grunt-node-qunit&quot; title=&quot;Grunt task running node-qnuit&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;grunt-node-qunit&lt;/code&gt;&lt;/a&gt; plugin for grunt task, which is Grunt task running &lt;a href=&quot;https://github.com/kof/node-qunit&quot; title=&quot;node-qunit, Port of QUnit unit testing framework to nodejs&quot;&gt;node-qunit&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Here is the list of &lt;em&gt;How to&lt;/em&gt;:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;configure project’s &lt;code class=&quot;highlighter-rouge&quot;&gt;package.json&lt;/code&gt; file&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ npm init
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;install &lt;code class=&quot;highlighter-rouge&quot;&gt;grunt-cli&lt;/code&gt;&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ npm i -g grunt-cli
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;add grunt dependencies into project (see &lt;a href=&quot;http://gruntjs.com/getting-started#package.json&quot; title=&quot;grunt configuration on package.json&quot;&gt;official docs&lt;/a&gt;)&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;install &lt;code class=&quot;highlighter-rouge&quot;&gt;grunt&lt;/code&gt;&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ npm i grunt --save-dev
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;add &lt;code class=&quot;highlighter-rouge&quot;&gt;Gruntfile.js&lt;/code&gt; to resister task&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;module.exports = function (grunt) {
+   grunt.initConfig({task-name: {}});
+   grunt.loadNpmTasks(&#39;grunt-node-qunit&#39;);
+   grunt.registerTask(&#39;default&#39;, [&#39;task-name&#39;]);
+};
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;add test script into &lt;code class=&quot;highlighter-rouge&quot;&gt;package.json&lt;/code&gt;, which allow us to run &lt;code class=&quot;highlighter-rouge&quot;&gt;$ npm test&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;run &lt;code class=&quot;highlighter-rouge&quot;&gt;$ grunt&lt;/code&gt; to test the configuration&lt;/li&gt;
+  &lt;li&gt;run &lt;code class=&quot;highlighter-rouge&quot;&gt;$ grunt --stack&lt;/code&gt; to debug grunt task script&lt;/li&gt;
+  &lt;li&gt;run &lt;code class=&quot;highlighter-rouge&quot;&gt;$ npm test&lt;/code&gt; to test &lt;code class=&quot;highlighter-rouge&quot;&gt;package.json&lt;/code&gt; configuration&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;A little attention we should pay on is we may face an error on ubuntu says:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/usr/bin/env: node: No such file or directory
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;See &lt;a href=&quot;https://github.com/joyent/node/issues/3911&quot; title=&quot;issue #3911&quot;&gt;here&lt;/a&gt; to fix it.&lt;/p&gt;
+
+&lt;h2 id=&quot;droneio&quot;&gt;Drone.io&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://drone.io/github.com/scozv/algo-js/latest&quot;&gt;&lt;img src=&quot;https://drone.io/github.com/scozv/algo-js/status.png&quot; alt=&quot;Build Status&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The web &lt;a href=&quot;https://drone.io/&quot; title=&quot;drone.io&quot;&gt;drone.io&lt;/a&gt; is an online CI service. There are other options of online CI.
+Some advantages of drone.io are:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;CI for Github, Google Code and Bitbucket&lt;/li&gt;
+  &lt;li&gt;CI command is hosted in drone.io, instead of a file in our project folder&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The CI command for Algo.js is:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;npm -d install
+npm install -g grunt-cli
+npm test
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;next&quot;&gt;Next&lt;/h2&gt;
+&lt;p&gt;I am going to fix &lt;a href=&quot;https://github.com/scozv/algo-js/issues/18&quot; title=&quot;issue #18&quot;&gt;issue #18&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>How to Write Iterative Tarjan SCC Algorithm, Part II</title>
+   <link href="https://scozv.github.io/blog/algo/2013/11/23/how-to-write-iterative-tarjan-scc-algorithm-part-one"/>
+   <updated>2013-11-23T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/algo/2013/11/23/how-to-write-iterative-tarjan-scc-algorithm-part-one</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;In &lt;a href=&quot;/algo/2013/11/10/how-to-write-iterative-tarjan-scc-algorithm-part-zero&quot; title=&quot;Tarjan, Part I&quot;&gt;previous part&lt;/a&gt;, we talked about iterative DFS, where we use a stack named  &lt;strong&gt;frontier&lt;/strong&gt; to keep the visiting order. This time, we are going to look at the iterative topological sort and Karasoju SCC algorithm.&lt;/p&gt;
+
+  &lt;p&gt;The key idea of my iterative topological sort is use another stack named &lt;strong&gt;head&lt;/strong&gt; to track when we finish visiting all descendant vertex of the head vertex.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;recursive-topological-sort&quot;&gt;Recursive Topological Sort&lt;/h2&gt;
+&lt;p&gt;In the beginning, we introduce the code of recursive topological sort:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;topologicalSortRec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;numberOfVertex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;order&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[],&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;DFS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// recursive search graph g,&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// from the initial node i&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;getAdjacentVertex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isVisited&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;DFS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+    &lt;span class=&quot;nx&quot;&gt;order&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;markVisited&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isVisited&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;DFS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;order&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;As we notice, we get the topological order from recursive DFS. The proof of correctness will be found at Wikipedia or online course &lt;a href=&quot;https://www.coursera.org/course/algo&quot; title=&quot;Online course by Tim Roughgarden&quot;&gt;&lt;em&gt;Algorithms: Design and Analysis, Part 1&lt;/em&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;call-stack&quot;&gt;Call Stack&lt;/h2&gt;
+
+&lt;p&gt;Take a directed graph represented by adjacency list below for instance.&lt;/p&gt;
+
+&lt;p&gt;1: [2, 4]
+  2: &lt;a href=&quot;https://github.com/scozv/algo-js&quot; title=&quot;Algo.js&quot;&gt;3&lt;/a&gt;
+  3: [5]
+  4: [3, 5]&lt;/p&gt;
+
+&lt;p&gt;(Please draw this simple graph on the paper to help understand. &lt;code class=&quot;highlighter-rouge&quot;&gt;1: [2, 4]&lt;/code&gt; means there are only two edges from vertex 1, that are 1 → 2 and 1 → 4.)&lt;/p&gt;
+
+&lt;p&gt;Here is the call stack of recursive topological sort. In each loop at current &lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;, we list its parent vertex in column titled &lt;strong&gt;P&lt;/strong&gt;. If all of descendant vertex of &lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt; which we list in column titled &lt;code class=&quot;highlighter-rouge&quot;&gt;v.c()&lt;/code&gt; have been visited, we set the &lt;code class=&quot;highlighter-rouge&quot;&gt;order(v)&lt;/code&gt;.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;P&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;v.c()&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Action&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{2, 4}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;initial call&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{3}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{5}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(5) = 5, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#3&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(3) = 4, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#2&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(2) = 3, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#1&lt;/code&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{4}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;4&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(4) = 2, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#1&lt;/code&gt; (initial call)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(1) = 1&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;inspiration&quot;&gt;Inspiration&lt;/h2&gt;
+
+&lt;p&gt;According to &lt;em&gt;Part Zero&lt;/em&gt;, we add &lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt; to call stack table as below.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;P&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;v.c()&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Action&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{2, 4}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;initial call&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{3}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{5}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3, 5&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3, 5&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(5) = 5, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#3&lt;/code&gt;, pop frontier&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(3) = 4, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#2&lt;/code&gt;, pop frontier&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(2) = 3, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#1&lt;/code&gt;, pop frontier&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;{4}&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;4&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(4) = 2, back to __p__arent &lt;code class=&quot;highlighter-rouge&quot;&gt;v#1&lt;/code&gt; (initial call), pop frontier&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;order(1) = 1, pop frontier, then frontier is empty&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;If we look into the &lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt; and the time when descendant vertex array is empty, we may notice the top of &lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt; is the vertex we visit currently.&lt;/p&gt;
+
+&lt;h2 id=&quot;stack-head&quot;&gt;Stack Head&lt;/h2&gt;
+
+&lt;p&gt;So we introduce a stack named &lt;code class=&quot;highlighter-rouge&quot;&gt;head&lt;/code&gt; to track the time when we finish visiting all descendant vertex of the head vertex (current &lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;).&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;iterTopologicalSort&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Stack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;head&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Stack&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;numberOfVertex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;order&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[];&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;peek&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;peek&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/*head may be empty here*/&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+          &lt;span class=&quot;c1&quot;&gt;// we hit the time to set order&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;pop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;pop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;order&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;n&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;--&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;markVisited&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+          &lt;span class=&quot;c1&quot;&gt;// current is just a child of some v&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+          &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;getAdjacentVertex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isVisited&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+              &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+          &lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// end for&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// end else&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// end while&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Running the iterative code, we update the stack table:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;head&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Action&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;initial call&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 2&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 2, 3&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3, 5&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 2, 3, 5&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3, 5&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;peek()&lt;/code&gt; eqauls, set order(5), pop two stacks&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 2, 3&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2, 3&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;peek()&lt;/code&gt; eqauls, set order(3), pop two stacks&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 2&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4, 2&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;peek()&lt;/code&gt; eqauls, set order(2), pop two stacks&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;4&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1, 4&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;peek()&lt;/code&gt; eqauls, set order(4), pop two stacks&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;(1&amp;gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;peek()&lt;/code&gt; eqauls, set order(1), pop two stacks&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;As we see, The time of finishing visit all descendant of current &lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;, and to set order(current) is when &lt;code class=&quot;highlighter-rouge&quot;&gt;peek()&lt;/code&gt; eqauls, i.e. &lt;code class=&quot;highlighter-rouge&quot;&gt;head.peek() == frontier.peek()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;attention&quot;&gt;Attention&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Empty Head&lt;/strong&gt;. At line 10, &lt;code class=&quot;highlighter-rouge&quot;&gt;head.peek()&lt;/code&gt; may throw an exception if &lt;code class=&quot;highlighter-rouge&quot;&gt;head.isEmpty()&lt;/code&gt;. We can check it before each &lt;code class=&quot;highlighter-rouge&quot;&gt;peek()&lt;/code&gt;, or we can push &lt;code class=&quot;highlighter-rouge&quot;&gt;-1&lt;/code&gt; (whatever bottom item) to make sure head is always contains item(s) before &lt;code class=&quot;highlighter-rouge&quot;&gt;frontier.isEmpty()&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Vertex Status&lt;/strong&gt;. Same issue may be occurred similarly as in iterative DFS we mentioned in last part. (see &lt;a href=&quot;https://github.com/scozv/algo-js/issues/20&quot; title=&quot;Issue 20&quot;&gt;issue #20&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;kosaraju-scc&quot;&gt;Kosaraju SCC&lt;/h2&gt;
+&lt;p&gt;Kosaraju SCC algorithm, which runs DFS twice, finds some kind of visiting order in the first DFS. So we can find topological sort order as in the first DFS, then use the order for the second DFS.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-time&quot;&gt;Running Time&lt;/h2&gt;
+&lt;p&gt;Roughly speaking, the running time of iterarive topological sort is same as time of DFS.
+The time of Kosaraju SCC which runs DFS twice, is still &lt;script type=&quot;math/tex&quot;&gt;O(m+n)&lt;/script&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;next&quot;&gt;Next&lt;/h2&gt;
+&lt;p&gt;See code on details in &lt;code class=&quot;highlighter-rouge&quot;&gt;graph.search.js&lt;/code&gt; of &lt;a href=&quot;https://github.com/scozv/algo-js&quot; title=&quot;Algo.js&quot;&gt;Algo.js&lt;/a&gt;. And next post, I am going to explain iterative Tarjan SCC algorithm, which cost me a few time.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>How to Write Iterative Tarjan SCC Algorithm, Part I</title>
+   <link href="https://scozv.github.io/blog/algo/2013/11/10/how-to-write-iterative-tarjan-scc-algorithm-part-zero"/>
+   <updated>2013-11-10T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/algo/2013/11/10/how-to-write-iterative-tarjan-scc-algorithm-part-zero</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;During the work on &lt;a href=&quot;https://github.com/scozv/algo-js&quot; title=&quot;Algo.js&quot;&gt;Algo.js&lt;/a&gt;, I found there is a limitation on recursive stack size of JavaScript. This series posts describe the way to convert recursive Tarjan SCC algorithm to iterative one, containing:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Part I: Iterative BFS and DFS algorithm on graph;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;/algo/2013/11/23/how-to-write-iterative-tarjan-scc-algorithm-part-one&quot; title=&quot;Tarjan, Part II&quot;&gt;Part II&lt;/a&gt;: Iterative topological sort and Kosaraju SCC algorithm on graph;&lt;/li&gt;
+    &lt;li&gt;Part III: Iterative Tarjan SCC algorithm on graph.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;recursive-dfs&quot;&gt;Recursive DFS&lt;/h2&gt;
+
+&lt;p&gt;It is easy to write down a recursive BFS or DFS algorithm on graph. Take DFS for example:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;DFS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// do something on this node and mark it as visited&lt;/span&gt;
+
+  &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;getAdjacentVertex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// then we DFS on each adjacent vertex of this node&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isVisited&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;DFS&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;markVisited&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;node&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The call of recursive function is managed by a stack, we may see ‘Call Stack’, or ‘Error Stack’ in some IDE tools. Recursive function is brief, and it is easy to understand sometimes. But if there is limitation on stack size, We may try to write it as iterative way.&lt;/p&gt;
+
+&lt;h2 id=&quot;call-stack&quot;&gt;Call Stack&lt;/h2&gt;
+
+&lt;p&gt;Firstly, we see what happen in recursive DFS above, for the graph with only two paths:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;1 → 2 → 3
+1 → 4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;we call &lt;code class=&quot;highlighter-rouge&quot;&gt;DFS(1)&lt;/code&gt;, find &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;2,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; as adjacent vertex, then we call &lt;code&gt;DFS&lt;sub&gt;1&lt;/sub&gt;(2)&lt;/code&gt; (notation  &lt;code&gt;DFS&lt;sub&gt;i&lt;/sub&gt;(j)&lt;/code&gt; means the parent call of &lt;code class=&quot;highlighter-rouge&quot;&gt;j&lt;/code&gt; in stack is &lt;code class=&quot;highlighter-rouge&quot;&gt;i&lt;/code&gt;). Next call  &lt;code&gt;DFS&lt;sub&gt;2&lt;/sub&gt;(3)&lt;/code&gt; finding &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; as adjacent vertex of &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt; and finish &lt;code&gt;DFS&lt;sub&gt;1&lt;/sub&gt;(2)&lt;/code&gt;. Finally  call  &lt;code&gt;DFS&lt;sub&gt;1&lt;/sub&gt;(4)&lt;/code&gt; and finish &lt;code class=&quot;highlighter-rouge&quot;&gt;DFS(1)&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;stack-frontier&quot;&gt;Stack Frontier&lt;/h2&gt;
+
+&lt;p&gt;If we have a stack named &lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt;, we push &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt; at first, then pop to visit &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt;. Push &lt;code class=&quot;highlighter-rouge&quot;&gt;[4, 2]&lt;/code&gt;, and pop &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt;. Next push &lt;code class=&quot;highlighter-rouge&quot;&gt;[3]&lt;/code&gt; as adjacent vertex of &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt; (the stack is &lt;code class=&quot;highlighter-rouge&quot;&gt;( 4, 3 &amp;gt;&lt;/code&gt; now). Finally pop &lt;code class=&quot;highlighter-rouge&quot;&gt;3&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;4&lt;/code&gt; to finish search.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Row Index&lt;/th&gt;
+      &lt;th style=&quot;text-align: center&quot;&gt;Current &lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;Action&lt;/th&gt;
+      &lt;th style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;0&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;initial call&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;( 1 &amp;gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;find &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;2,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; as adjacent vertex of &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;( 4, 2 &amp;gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;pop &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt; to visit&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;( 4 &amp;gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;find &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; of &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt;&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;( 4, 3 &amp;gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;4&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;pop &lt;code class=&quot;highlighter-rouge&quot;&gt;3&lt;/code&gt; to visit&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;( 4 &amp;gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;5&lt;/td&gt;
+      &lt;td style=&quot;text-align: center&quot;&gt;4&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;pop &lt;code class=&quot;highlighter-rouge&quot;&gt;4&lt;/code&gt; to visit&lt;/td&gt;
+      &lt;td style=&quot;text-align: left&quot;&gt;empty&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;(notation &lt;code class=&quot;highlighter-rouge&quot;&gt;( &amp;gt;&lt;/code&gt; specifies we push and pop from right side)&lt;/p&gt;
+
+&lt;h2 id=&quot;attentions&quot;&gt;Attentions&lt;/h2&gt;
+
+&lt;p&gt;There are two things we need to pay attentions:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Visiting Order&lt;/strong&gt;. At row index 1, we push &lt;code class=&quot;highlighter-rouge&quot;&gt;4&lt;/code&gt; at first, in order to visit graph as same order of recursive call. However this is not very important, I just want to sync the order of iterative way and the order of recursive way. Pushing &lt;code class=&quot;highlighter-rouge&quot;&gt;4&lt;/code&gt; at first or pushing &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt; at first will get correct topological order or SCC, which we are going to find out at following two parts.&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Vertex Status&lt;/strong&gt;. If we have only two paths in graph like: &lt;code class=&quot;highlighter-rouge&quot;&gt;1 → 2 → 3&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;1 → 3 → 4&lt;/code&gt;. We have stack like this:&lt;/p&gt;
+
+    &lt;table&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th style=&quot;text-align: center&quot;&gt;Row Index&lt;/th&gt;
+          &lt;th style=&quot;text-align: center&quot;&gt;Current &lt;code class=&quot;highlighter-rouge&quot;&gt;v&lt;/code&gt;&lt;/th&gt;
+          &lt;th style=&quot;text-align: left&quot;&gt;Action&lt;/th&gt;
+          &lt;th style=&quot;text-align: left&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;frontier&lt;/code&gt;&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;tr&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;0&lt;/td&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;initial call&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;( 1 &amp;gt;&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;1&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;find &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;2,&lt;/span&gt;&lt;span class=&quot;w&quot;&gt; &lt;/span&gt;&lt;span class=&quot;err&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; as adjacent vertex of &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt;&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;( 3, 2 &amp;gt;&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;pop &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt; to visit&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;( 3 &amp;gt;&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;3&lt;/td&gt;
+          &lt;td style=&quot;text-align: center&quot;&gt;2&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;find &lt;code class=&quot;highlighter-rouge&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt; of &lt;code class=&quot;highlighter-rouge&quot;&gt;2&lt;/code&gt;&lt;/td&gt;
+          &lt;td style=&quot;text-align: left&quot;&gt;( 3, 3 &amp;gt;&lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tbody&gt;
+    &lt;/table&gt;
+
+    &lt;p&gt;(notation &lt;code class=&quot;highlighter-rouge&quot;&gt;( &amp;gt;&lt;/code&gt; specifies we push and pop from right side)&lt;/p&gt;
+
+    &lt;p&gt;We may notice at row index 3, we push duplicate &lt;code class=&quot;highlighter-rouge&quot;&gt;3&lt;/code&gt; into frontier. So we need a vertex status to mark vertex as being visited or being pushed into stack (see &lt;a href=&quot;https://github.com/scozv/algo-js/issues/8&quot; title=&quot;Issue 8&quot;&gt;issue #8&lt;/a&gt;).&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;running-time&quot;&gt;Running Time&lt;/h2&gt;
+&lt;p&gt;Here is simplified code of iterative DFS:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// 0. initialize stack, O(1)&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;// 1. for all vertex, O(|V|)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;not&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// 1.0 visit current vertex, O(1)&lt;/span&gt;
+
+    &lt;span class=&quot;c1&quot;&gt;// 1.1 process all vertex out from the current&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;getAdjacentVertex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;// process each adjacent vertex of the current one&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In our code (comment 1.1) below, for each vertex, we process its adjacent vertex,
+which we find from outgoing edges of current vertex.
+We let the number of outgoing edges of vertex &lt;script type=&quot;math/tex&quot;&gt;i&lt;/script&gt; is &lt;script type=&quot;math/tex&quot;&gt;e_i&lt;/script&gt;,
+and &lt;script type=&quot;math/tex&quot;&gt;n=\|V\|, m=\|E\|&lt;/script&gt; as the number of vertex and number of edges respectively, so we write the running time as following:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;T = O(1) + \sum_{i=1}^{n} \left [ O(1) + e_i \right ]&lt;/script&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;= O(1) + \sum_{i=1}^{n}O(1) + \sum_{i=1}^{n}e_i&lt;/script&gt;
+
+&lt;p&gt;And notice that the sum of outgoing edges of all vertex is the the number of all edges, that is &lt;script type=&quot;math/tex&quot;&gt;\sum_{i=1}^{n}e_i=\left \|E \right \|=m&lt;/script&gt;, so we have:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;T=O(1)+O(n)+O(m)=O(n+m)&lt;/script&gt;
+
+&lt;h2 id=&quot;next&quot;&gt;Next&lt;/h2&gt;
+
+&lt;p&gt;Read code in &lt;code class=&quot;highlighter-rouge&quot;&gt;graph.search.js&lt;/code&gt; on &lt;a href=&quot;https://github.com/scozv/algo-js&quot; title=&quot;Algo.js&quot;&gt;Algo.js&lt;/a&gt;, and reference &lt;a href=&quot;http://blog.moertel.com/posts/2013-05-11-recursive-to-iterative.html&quot; title=&quot;Recursive to Iterative by Tom Moertel&quot;&gt;this series of posts&lt;/a&gt; by Tom Moertel for more details on &lt;em&gt;Recursive to Iterative&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;/algo/2013/11/23/how-to-write-iterative-tarjan-scc-algorithm-part-one&quot; title=&quot;Tarjan, Part II&quot;&gt;Next&lt;/a&gt; part of this series, I am going to describe some ideas on iterative topological order algorithm which can be applied on Kosaraju SCC algorithm.&lt;/p&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>How to Update Heap in Dijkstra Shortest Path Algorithm</title>
+   <link href="https://scozv.github.io/blog/algo/2013/11/03/how-to-update-heap-in-dijkstra-shortest-path"/>
+   <updated>2013-11-03T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/algo/2013/11/03/how-to-update-heap-in-dijkstra-shortest-path</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;When we use a &lt;strong&gt;heap&lt;/strong&gt; to improve the runing time of Dijkstra shortest path algorithm from &lt;script type=&quot;math/tex&quot;&gt;O(nm)&lt;/script&gt; to &lt;script type=&quot;math/tex&quot;&gt;O(n \ln m)&lt;/script&gt;, we may find that it is not easy to keep the heap in heap order just using insert() or delete(). This post describes the update of that heap.&lt;/p&gt;
+
+  &lt;p&gt;I suppose that you might:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;know how to wirte Dijkstra algorithm with &lt;script type=&quot;math/tex&quot;&gt;O(nm)&lt;/script&gt; running time, and&lt;/li&gt;
+    &lt;li&gt;know how to use heap.&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;To speed up the finding minimum length of path in each stage in Dijkstra shortest path algorithm, we can use a binary heap to store frontier path, according to many words, like &lt;a href=&quot;http://en.wikipedia.org/wiki/Heap_(data_structure)#Applications&quot; title=&quot;Wikipedia&quot;&gt;&lt;em&gt;Heap Application&lt;/em&gt;&lt;/a&gt;, or Tim Roughgarden’s &lt;a href=&quot;https://www.coursera.org/course/algo&quot; title=&quot;Algorithms: Design and Analysis, Part 1&quot;&gt;algorithm course&lt;/a&gt;.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;dijstra&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;Heap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]);&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isEmpty&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;n&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// O(logn) on pop() instead of O(n)&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;//   from linear selection of minimum length&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;pop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+
+    &lt;span class=&quot;nx&quot;&gt;graph&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;edgesOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;filter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;isVisisted&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+     &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;forEach&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;has&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+          &lt;span class=&quot;c1&quot;&gt;// update path length on v in frontier&lt;/span&gt;
+        &lt;span class=&quot;nl&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+          &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;weightOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;It sounds easy, however the 1st revision of &lt;code class=&quot;highlighter-rouge&quot;&gt;dijkstra()&lt;/code&gt; in Algo.js is failed to update heap correctly, where I just update the value of one vertex without keeping heap order.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;__labelAt__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+	&lt;span class=&quot;c1&quot;&gt;// not visited, update each in frontier&lt;/span&gt;
+	&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;updated&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;__id__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Math&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]),&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+
+	&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;updated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;push&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]]);&lt;/span&gt;
+	&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// end if, unvisited&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;How to update and keep heap order?&lt;/p&gt;
+
+&lt;p&gt;While, when we update the MinHeap, it means that we may replace the item at that index with a value &lt;strong&gt;LESS&lt;/strong&gt; than the origin one. According to the definition of minimum binary heap, each parent is less than their children. (see picture from &lt;a href=&quot;http://en.wikipedia.org/wiki/Heap_(data_structure)#Applications&quot; title=&quot;Wikipedia&quot;&gt;Wikipedia&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://upload.wikimedia.org/wikipedia/commons/6/69/Min-heap.png&quot; alt=&quot;Min Heap&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So, if we replace &lt;script type=&quot;math/tex&quot;&gt;17&lt;/script&gt; with a &lt;strong&gt;LESS&lt;/strong&gt; value called &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt;.
+&lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; is still less than its children,
+but &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; may be less than &lt;script type=&quot;math/tex&quot;&gt;2&lt;/script&gt; (its parent).
+As the algorithm of &lt;code class=&quot;highlighter-rouge&quot;&gt;push()&lt;/code&gt; of heap, we need to exchange &lt;script type=&quot;math/tex&quot;&gt;x&lt;/script&gt; with its parent, great-parent…, until heap is ordered. That is:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Using &lt;code class=&quot;highlighter-rouge&quot;&gt;heap.swim()&lt;/code&gt; to update that heap.&lt;/strong&gt; (see &lt;a href=&quot;https://goo.gl/NssHNy&quot; title=&quot;Diff of Algo.js&quot;&gt;diff&lt;/a&gt; of revision)&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;updated&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;__id__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;some&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// return x &amp;amp;&amp;amp; x[0] === v[0] &amp;amp;&amp;amp; (doUpdate, true)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(){&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;current&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// swim like push() in heap is important to update heap&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;frontier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;__swim__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;})(),&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+</feed>

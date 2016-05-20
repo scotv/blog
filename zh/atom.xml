@@ -1,0 +1,2330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+
+ <title>Code this.</title>
+ <link href="https://scozv.github.io/blog/zh/atom.xml" rel="self"/>
+ <link href="https://scozv.github.io/blog/zh"/>
+ <updated>2016-05-20T17:08:23+08:00</updated>
+ <id>https://scozv.github.io/blog/zh</id>
+ <author>
+   <name>Scott</name>
+   <email>scozv@yandex.com</email>
+ </author>
+ 
+ 
+ <entry>
+   <title>基于低耦合和持续集成的Web架构</title>
+   <link href="https://scozv.github.io/blog/zh/pattern/2016/05/05/a-low-coupling-architecture-of-the-web-solution-with-continuous-integration"/>
+   <updated>2016-05-05T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/pattern/2016/05/05/a-low-coupling-architecture-of-the-web-solution-with-continuous-integration</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;section&quot;&gt;摘要&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;本文将要解释，我目前以及未来在项目中，将会一直实践的两个概念：低耦合与持续集成。&lt;/p&gt;
+
+  &lt;p&gt;本文还没有完全地写完。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-1&quot; id=&quot;markdown-toc-section-1&quot;&gt;两个核心概念：低耦合与持续集成&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-2&quot; id=&quot;markdown-toc-section-2&quot;&gt;完全独立的低耦合&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-3&quot; id=&quot;markdown-toc-section-3&quot;&gt;节点的定义&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#server&quot; id=&quot;markdown-toc-server&quot;&gt;独立的Server&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#view&quot; id=&quot;markdown-toc-view&quot;&gt;独立的View&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-4&quot; id=&quot;markdown-toc-section-4&quot;&gt;各个独立部分的测试&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-5&quot; id=&quot;markdown-toc-section-5&quot;&gt;独立节点的交互&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-6&quot; id=&quot;markdown-toc-section-6&quot;&gt;独立的程度&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-7&quot; id=&quot;markdown-toc-section-7&quot;&gt;独立与集成&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-8&quot; id=&quot;markdown-toc-section-8&quot;&gt;低耦合与持续集成之间的矛盾&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-9&quot; id=&quot;markdown-toc-section-9&quot;&gt;构造多个独立节点协调性的测试方案&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-10&quot; id=&quot;markdown-toc-section-10&quot;&gt;完备的持续集成&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-11&quot; id=&quot;markdown-toc-section-11&quot;&gt;独立节点的完备测试&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-12&quot; id=&quot;markdown-toc-section-12&quot;&gt;持续的代码提交流程&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-13&quot; id=&quot;markdown-toc-section-13&quot;&gt;持续的发布流程&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-14&quot; id=&quot;markdown-toc-section-14&quot;&gt;总结&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-15&quot; id=&quot;markdown-toc-section-15&quot;&gt;抽象的概念应该先于具体的技术实现&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-16&quot; id=&quot;markdown-toc-section-16&quot;&gt;技术是一个工具&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-17&quot; id=&quot;markdown-toc-section-17&quot;&gt;在低耦合节点中更换技术&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-18&quot; id=&quot;markdown-toc-section-18&quot;&gt;持续集成保证低耦合节点的交互&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;两个核心概念：低耦合与持续集成&lt;/h1&gt;
+
+&lt;p&gt;低耦合（Loose Coupling）与持续集成（CI）这两个概念，是我目前以及未来在项目实践中，
+会应用，而且必须应用的两个核心概念。&lt;/p&gt;
+
+&lt;p&gt;简单地讲：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;低耦合：将系统中的各个&lt;strong&gt;节点&lt;/strong&gt;（参看术语），分别独立起来，相互之间无所依赖，
+不需要关心对方的具体实现方式&lt;/li&gt;
+  &lt;li&gt;持续集成：节点相互独立之后，如何保证：
+    &lt;ol&gt;
+      &lt;li&gt;各个节点本身的功能正常&lt;/li&gt;
+      &lt;li&gt;（系统全局而言）节点之间如何交互，进而协同工作&lt;/li&gt;
+    &lt;/ol&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-2&quot;&gt;完全独立的低耦合&lt;/h1&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;节点的定义&lt;/h2&gt;
+
+&lt;p&gt;为了便于阅读，我将定义“节点”这个概念：&lt;/p&gt;
+
+&lt;p&gt;节点可以是一个抽象的概念，比如&lt;code class=&quot;highlighter-rouge&quot;&gt;MVC&lt;/code&gt;中的&lt;code class=&quot;highlighter-rouge&quot;&gt;View&lt;/code&gt;；
+节点也可以是一个物理的部署，比如一个物理部署的数据库服务。&lt;/p&gt;
+
+&lt;p&gt;节点的封装，没有固定的模式，主要取决于系统层面的宏观考量（后面的章节会详细阐述）。
+比如，就&lt;code class=&quot;highlighter-rouge&quot;&gt;MVC&lt;/code&gt;的三个部分而言，我们可以：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;将&lt;code class=&quot;highlighter-rouge&quot;&gt;MVC&lt;/code&gt;整体放到一个节点中去实现，比如利用&lt;code class=&quot;highlighter-rouge&quot;&gt;ASP .NET MVC&lt;/code&gt;，将数据库和整个Web服务部署在一起；&lt;/li&gt;
+  &lt;li&gt;将&lt;code class=&quot;highlighter-rouge&quot;&gt;MC&lt;/code&gt;和数据库放到一个节点中去，将视图&lt;code class=&quot;highlighter-rouge&quot;&gt;View&lt;/code&gt;放到另外的节点。
+前面的那个节点，可以做成&lt;code class=&quot;highlighter-rouge&quot;&gt;RESTful API&lt;/code&gt;，后面的那个节点，可以用静态页面，或者移动&lt;code class=&quot;highlighter-rouge&quot;&gt;App&lt;/code&gt;来绘制；&lt;/li&gt;
+  &lt;li&gt;我们还可以将数据库独立成第三个节点，比如购买一个&lt;code class=&quot;highlighter-rouge&quot;&gt;PaaS&lt;/code&gt;的数据库实例；&lt;/li&gt;
+  &lt;li&gt;我们还可以将数据库拆分为二，一个数据库节点用来存储核心数据，另外一个用来存储用户行为分析的数据；&lt;/li&gt;
+  &lt;li&gt;我们甚至可以将用户行为分析的数据库和&lt;code class=&quot;highlighter-rouge&quot;&gt;View&lt;/code&gt;组成一个节点。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;以上节点的封装，如下图所示（使用&lt;a href=&quot;http://asciiflow.com/&quot;&gt;ASCIIFlow Infinity&lt;/a&gt;绘制）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;####################################  scenario 01, entire node
+
++------------+              +-----------------+
+| you and me |              | IIS / tomcat    |
+| Chromium   +------------&amp;gt; | ASP .NET MVC    |
+|            |              | Database        |
+| mobile     |              |                 |
+| device     |              |                 |
++------------+              +-----------------+
+
+
+####################################  scenario 02, separating View from MV+C
+
++------------+              +-----------------+                      +--------------------+
+| you and me |              | View            |    HTTP Request      | RESTful API        |
+| Chromium   +------------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+|            |              | static HTML page|                      |                    |
+| mobile     |              | mobile App      |                      | Database           |
+| device     |              |                 |                      |                    |
+|            |              |                 | &amp;lt;--------------------+                    |
++------------+              +-----------------+    HTTP Response     +--------------------+
+
+
+####################################  scenario 03, separating Database from MV
+
++------------+              +-----------------+                      +--------------------+
+| you and me |              | View            |    HTTP Request      | RESTful API        |
+| Chromium   +------------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+|            |              | static HTML page|                      |                    |
+| mobile     |              | mobile App      |                      |                    |
+| device     |              |                 |                      |                    |
+|            |              |                 | &amp;lt;--------------------+                    |
++------------+              +-----------------+    HTTP Response     +-+------------------+
+                                                                       |
+                                                                       |  connection
+                                                                       |  string
+                                                                       |
+                                                                       |
+                                                                     +-+------------------+
+                                                                     | PaaS               |
+                                                                     | Database+aaS       |
+                                                                     |                    |
+                                                                     |                    |
+                                                                     |                    |
+                                                                     |                    |
+                                                                     +--------------------+
+
+
+
+
+####################################  scenario 04, multiple Databases
+
+
+                                                                      +--------------------+
+                                                                      | PaaS               |
+                                                                      | Database+aaS       |
+                                                                      |                    |
+                                                                      | Core Business      |
+                                                                      |                    |
+                                                                      |                    |
+                                                                      +-+------------------+
+                                                                        |
+                                                                        | connection
+                                                                        | string
+                                                                        |
+                                                                        |
+ +-------------+             +-----------------+                      +-+------------------+
+ | you and me  |             | View            |    HTTP Request      | RESTful API        |
+ | Chromium    +-----------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+ |             |             | static HTML page|                      |                    |
+ | mobile      |             | mobile App      |                      |                    |
+ | device      |             |                 |                      |                    |
+ |             |             |                 | &amp;lt;--------------------+                    |
+ +-------------+             +-----------------+    HTTP Response     +-+------------------+
+                                                                        |
+                                                                        | connection
+                                                                        | string
+                                                                        |
+                                                                        |
+                                                                      +-+------------------+
+                                                                      | PaaS               |
+                                                                      | Database+aaS       |
+                                                                      |                    |
+                                                                      | user-agent data    |
+                                                                      |                    |
+                                                                      |                    |
+                                                                      +--------------------+
+
+
+
+
+ ####################################  scenario 05, separating and combination
+
+ +------------+              +-----------------+                      +--------------------+
+ | you and me |              | View            |    HTTP Request      | RESTful API        |
+ | Chromium   +------------&amp;gt; | React.js        +--------------------&amp;gt; | http://spray.io/   |
+ |            |              | static HTML page|                      |                    |
+ | mobile     |              | mobile App      |                      |                    |
+ | device     |              |                 |                      |                    |
+ |            |              |                 | &amp;lt;--------------------+                    |
+ +------------+              +-----------------+    HTTP Response     +-+------------------+
+                             | Database        |                        |
+                             |                 |                        | connection
+                             | user-agent data |                        | string
+                             |                 |                        |
+                             |                 |                        |
+                             |                 |                        |
+                             +-----------------+                      +-+-------------------+
+                                                                      | PaaS                |
+                                                                      | Database+aaS        |
+                                                                      |                     |
+                                                                      | Core Business       |
+                                                                      |                     |
+                                                                      |                     |
+                                                                      +---------------------+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h2 id=&quot;server&quot;&gt;独立的Server&lt;/h2&gt;
+
+&lt;p&gt;我们将业务的处理，独立成一个&lt;code class=&quot;highlighter-rouge&quot;&gt;RESTful API&lt;/code&gt;的&lt;code class=&quot;highlighter-rouge&quot;&gt;Server&lt;/code&gt;。&lt;/p&gt;
+
+&lt;h2 id=&quot;view&quot;&gt;独立的View&lt;/h2&gt;
+
+&lt;p&gt;我们将用户页面的展示独立出来。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-4&quot;&gt;各个独立部分的测试&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;RESTful API&lt;/code&gt;的测试可以&lt;code class=&quot;highlighter-rouge&quot;&gt;mock&lt;/code&gt; 一系列的&lt;code class=&quot;highlighter-rouge&quot;&gt;HTTP Request&lt;/code&gt;进行，从而
+不依赖于用户页面的实现方式。&lt;/p&gt;
+
+&lt;p&gt;反之，用户页面的测试，可以&lt;code class=&quot;highlighter-rouge&quot;&gt;mock&lt;/code&gt;  一系列的&lt;code class=&quot;highlighter-rouge&quot;&gt;HTTP Response&lt;/code&gt;，从而不依赖于服务的实现方式。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-5&quot;&gt;独立节点的交互&lt;/h2&gt;
+
+&lt;p&gt;不同节点的交互，需要有一个统一的接口文档，比如一份&lt;code class=&quot;highlighter-rouge&quot;&gt;RESTful API&lt;/code&gt;的接口文档。
+每一个接口需要指定如下的接口信息：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;HTTP Method，比如&lt;code class=&quot;highlighter-rouge&quot;&gt;GET&lt;/code&gt;、 &lt;code class=&quot;highlighter-rouge&quot;&gt;POST&lt;/code&gt; 、&lt;code class=&quot;highlighter-rouge&quot;&gt;DELETE&lt;/code&gt; 、&lt;code class=&quot;highlighter-rouge&quot;&gt;PUT&lt;/code&gt;等&lt;/li&gt;
+  &lt;li&gt;URL&lt;/li&gt;
+  &lt;li&gt;Payload ，需要传递给Server的数据，&lt;/li&gt;
+  &lt;li&gt;HTTP Response，返回给Client的数据&lt;/li&gt;
+  &lt;li&gt;HTTP Header，可选&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;接口文档是不同节点交互的唯一桥梁，节点之间不需要了解对方节点具体实现的细节。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-6&quot;&gt;独立的程度&lt;/h2&gt;
+
+&lt;p&gt;节点的独立程度，取决于系统整体的考量，从上面的几个scenario可以看出，
+我们既可以把数据库放在某一个节点之内，也可以把他独立出来。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-7&quot;&gt;独立与集成&lt;/h1&gt;
+
+&lt;h2 id=&quot;section-8&quot;&gt;低耦合与持续集成之间的矛盾&lt;/h2&gt;
+
+&lt;p&gt;低耦合将节点独立开来，为了让节点之间能够协同工作，
+我们需要保证：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;节点本身是功能正常的&lt;/li&gt;
+  &lt;li&gt;节点完全参照接口文档&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-9&quot;&gt;构造多个独立节点协调性的测试方案&lt;/h2&gt;
+
+&lt;p&gt;参照接口文档，各个节点可以&lt;code class=&quot;highlighter-rouge&quot;&gt;mock&lt;/code&gt;需要获得的数据，比如，&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;RESTful API&lt;/code&gt;的测试可以&lt;code class=&quot;highlighter-rouge&quot;&gt;mock&lt;/code&gt; 一系列的&lt;code class=&quot;highlighter-rouge&quot;&gt;HTTP Request&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;View的测试，可以&lt;code class=&quot;highlighter-rouge&quot;&gt;mock&lt;/code&gt;  一系列的&lt;code class=&quot;highlighter-rouge&quot;&gt;HTTP Response&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-10&quot;&gt;完备的持续集成&lt;/h1&gt;
+
+&lt;h2 id=&quot;section-11&quot;&gt;独立节点的完备测试&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://scozv.github.io/help/2016/04/05/fully-migrating-from-bitbucket-cloud-issue-system-to-jira-server#continuous-integration&quot;&gt;之前的文章&lt;/a&gt;中也提到：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;需要完成单元测试&lt;/li&gt;
+  &lt;li&gt;需要&lt;code class=&quot;highlighter-rouge&quot;&gt;mock&lt;/code&gt;，从而完成一系列的BDD测试&lt;/li&gt;
+  &lt;li&gt;核心建模的测试覆盖率需要达到100%&lt;/li&gt;
+  &lt;li&gt;尽可能地引入UI测试&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-12&quot;&gt;持续的代码提交流程&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://scozv.github.io/help/2016/04/05/fully-migrating-from-bitbucket-cloud-issue-system-to-jira-server#continuous-integration&quot;&gt;之前的文章&lt;/a&gt;中也提到：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;commit 和 issue需要相互关联，以便追溯&lt;/li&gt;
+  &lt;li&gt;关闭的issue，不再接受commit&lt;/li&gt;
+  &lt;li&gt;每一次commit，需要被测试验证&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-13&quot;&gt;持续的发布流程&lt;/h2&gt;
+
+&lt;h1 id=&quot;section-14&quot;&gt;总结&lt;/h1&gt;
+
+&lt;h2 id=&quot;section-15&quot;&gt;抽象的概念应该先于具体的技术实现&lt;/h2&gt;
+
+&lt;p&gt;当我们提到&lt;code class=&quot;highlighter-rouge&quot;&gt;MVC&lt;/code&gt;的时候，不能一味的把&lt;code class=&quot;highlighter-rouge&quot;&gt;MVC&lt;/code&gt;看成一个不可分割的整体。这三个字母只是一个概念。&lt;/p&gt;
+
+&lt;p&gt;具体的技术实现是在其之后的。如果将具体的技术实现放到第一位，往往会限制我们的思想。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-16&quot;&gt;技术是一个工具&lt;/h2&gt;
+
+&lt;p&gt;就如设计模式和语言没有什么关系一样（&lt;a href=&quot;http://coolshell.cn/articles/8961.html&quot;&gt;参考文章&lt;/a&gt;），
+技术也是概念的一个实现。&lt;/p&gt;
+
+&lt;p&gt;当然，技术作为工具，在实现某一个抽象的概念的时候，有的可以更加便利的实现。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-17&quot;&gt;在低耦合节点中更换技术&lt;/h2&gt;
+
+&lt;p&gt;独立的节点，允许，节点本身更换，具体的技术，因为，对于其它节点而言，本身只需要按照接口文档去实现就好了。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-18&quot;&gt;持续集成保证低耦合节点的交互&lt;/h2&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>Bitbucket Cloud的Issue至JIRA Server的完全迁移指南</title>
+   <link href="https://scozv.github.io/blog/zh/guide/2016/04/05/fully-migrating-from-bitbucket-cloud-issue-system-to-jira-server"/>
+   <updated>2016-04-05T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/guide/2016/04/05/fully-migrating-from-bitbucket-cloud-issue-system-to-jira-server</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;section&quot;&gt;摘要&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;本文给出Bitbucket Cloud的Issue系统至JIRA Server的完整迁移方案，包括:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;Issue的导入；&lt;/li&gt;
+    &lt;li&gt;Bitbucket和JIRA的双向关联；&lt;/li&gt;
+    &lt;li&gt;修订历史的Git提交记录，从而与JIRA关联&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;如下话题，本文不作解释:&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;为什么是JIRA；&lt;/li&gt;
+    &lt;li&gt;为什么用Bitbucket；&lt;/li&gt;
+    &lt;li&gt;为什么我只用Ubuntu 14.04 Server操作系统&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;完整的迁移方案和迁移脚本，需要阅读英文版本。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;项目架构的两个核心思想&lt;/h1&gt;
+
+&lt;p&gt;低耦合（Loose Coupling）与持续集成（CI）这两个概念，是我目前以及未来在项目实践中，
+会应用，而且必须应用的两个核心概念。&lt;/p&gt;
+
+&lt;p&gt;我在另外一篇文章里面会更详细的解释这两个思想。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;低耦合的原则&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;将项目分割成相互独立的节点&lt;/li&gt;
+  &lt;li&gt;每一个节点是独立的源代码库&lt;/li&gt;
+  &lt;li&gt;节点的交互只能通过接口文档，相互之间不需要访问对方的源代码，不需要了解对方的实现细节&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;基本的持续集成&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;代码的测试覆盖率至少80%&lt;/li&gt;
+  &lt;li&gt;基本架构节点的覆盖率必须达到100%&lt;/li&gt;
+  &lt;li&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;FakeRequest&lt;/code&gt;对&lt;code class=&quot;highlighter-rouge&quot;&gt;RESTful API&lt;/code&gt;进行测试&lt;/li&gt;
+  &lt;li&gt;考虑UI测试&lt;/li&gt;
+  &lt;li&gt;不写测试的代码就是耍流氓&lt;/li&gt;
+  &lt;li&gt;每一次代码的提交需要满足Commit Acceptance Policy &lt;sup id=&quot;fnref:CAP01&quot;&gt;&lt;a href=&quot;#fn:CAP01&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;，即：
+    &lt;ul&gt;
+      &lt;li&gt;提交的message中包含issue编号&lt;/li&gt;
+      &lt;li&gt;该issue处于未解决的状态&lt;/li&gt;
+      &lt;li&gt;该issue有指定的resolver&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;每一次的提交需要由CI系统测试&lt;/li&gt;
+  &lt;li&gt;如果测试失败，代码提交者应该收到通知&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;每一次commit必须关联到Issue系统&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;每一个issue都要包含一系列的代码commits&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;每一次的CI编译环境，和上一次的环境无关&lt;/li&gt;
+  &lt;li&gt;持续编译和持续发布&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-4&quot;&gt;完整的迁移指南&lt;/h1&gt;
+
+&lt;p&gt;更详细的迁移解释需要阅读英文文档。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在Ubuntu上安装JIRA Server&lt;/li&gt;
+  &lt;li&gt;在JIRA里面创建Project&lt;/li&gt;
+  &lt;li&gt;导入Issue数据&lt;/li&gt;
+  &lt;li&gt;在JIRA Server中设置DVCS Accounts&lt;/li&gt;
+  &lt;li&gt;在Bitbucket Cloud里面指定JIRA Link&lt;/li&gt;
+  &lt;li&gt;修订历史代码提交信息，如下&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 警告：如下的代码将会重写所有的历史commits信息&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 警告：如下的代码将会重写所有的历史commits信息&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 警告：如下的代码将会重写所有的历史commits信息&lt;/span&gt;
+git clone --no-hardlinks git@bitbucket.org:scozv/ls-core-restful.git
+git filter-branch -f --msg-filter &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;s1&quot;&gt;&#39;sed &quot;s/#\([0-9][0-9]*\)/LS-\1/g&quot;&#39;&lt;/span&gt;
+git reset --hard
+git gc --aggressive
+git prune&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;jira&quot;&gt;JIRA安装脚本&lt;/h1&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# JAVA&lt;/span&gt;
+sudo add-apt-repository ppa:openjdk-r/ppa
+sudo apt-get update
+sudo apt-get install -y openjdk-8-jdk openjdk-8-jre openjdk-8-jre-headless
+
+&lt;span class=&quot;c&quot;&gt;# MySQL&lt;/span&gt;
+sudo apt-get install -y mysql-server mysql-client
+
+&lt;span class=&quot;c&quot;&gt;# JIRA&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# JIRA_BINARY=&quot;atlassian-jira-software-7.1.2-jira-7.1.2-x64.bin&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_BINARY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;atlassian-jira-6.4.13-x64.bin&quot;&lt;/span&gt;
+wget -nc -P ~/Downloads/ &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&quot;https://www.atlassian.com/software/jira/downloads/binary/&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$JIRA_BINARY&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+
+chmod a+x ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$JIRA_BINARY&lt;/span&gt;
+sudo bash ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$JIRA_BINARY&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+
+sudo vi &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/setenv.sh
+&lt;span class=&quot;c&quot;&gt;# JVM_SUPPORT_RECOMMENDED_ARGS=&quot;-Datlassian.plugins.enable.wait=300 -Xms64m -Xmx256m -Xss2m -XX:MaxPermSize=128m&quot;&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;c&quot;&gt;# sudo bash /opt/atlassian/jira/uninstall&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# JIRA MySQL&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://confluence.atlassian.com/jira/connecting-jira-to-mysql-185729489.html&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;MS_JIRA_DB&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;jiradb
+&lt;span class=&quot;nv&quot;&gt;MS_JIRA_DBUSER&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;jiradbuser
+&lt;span class=&quot;nv&quot;&gt;MS_JIRA_PWD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;*ABCDEFJHIGKLMNOPQRSTUVWXYZ&quot;&lt;/span&gt;
+mysql -uroot -p
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;CREATE USER &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_DBUSER&#39;&lt;/span&gt;@&lt;span class=&quot;s1&quot;&gt;&#39;localhost&#39;&lt;/span&gt; IDENTIFIED BY PASSWORD &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_PWD&#39;&lt;/span&gt;;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;CREATE DATABASE &lt;span class=&quot;nv&quot;&gt;$MS_JIRA_DB&lt;/span&gt; CHARACTER SET utf8 COLLATE utf8_bin;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER,INDEX
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;| on &lt;span class=&quot;nv&quot;&gt;$MS_JIRA_DB&lt;/span&gt;.&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; TO &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_DBUSER&#39;&lt;/span&gt;@&lt;span class=&quot;s1&quot;&gt;&#39;localhost&#39;&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;| IDENTIFIED BY PASSWORD &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_PWD&#39;&lt;/span&gt;;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;flush privileges;
+&lt;span class=&quot;gp&quot;&gt;&amp;gt; &lt;/span&gt;SHOW GRANTS FOR &lt;span class=&quot;s1&quot;&gt;&#39;$MS_JIRA_DBUSER&#39;&lt;/span&gt;@&lt;span class=&quot;s1&quot;&gt;&#39;localhost&#39;&lt;/span&gt;;
+
+&lt;span class=&quot;nv&quot;&gt;MYSQL_CONF&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/etc/mysql/my.cnf&quot;&lt;/span&gt;
+sudo cp &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;.before_JIRA
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/^default_storage_engine/c\default_storage_engine=INNODB&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/^max_allowed_packet/c\max_allowed_packet=256M&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/innodb_log_file_size/c\innodb_log_file_size=256M&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo sed -i &lt;span class=&quot;s1&quot;&gt;&#39;/^sql_mode.*=.*NO_AUTO_VALUE_ON_ZERO/c\#sql_mode = NO_AUTO_VALUE_ON_ZERO&#39;&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$MYSQL_CONF&lt;/span&gt;
+sudo bash /etc/init.d/mysql stop
+sudo bash /etc/init.d/mysql start
+
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;MYSQL_J_BINARY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mysql-connector-java-5.1.38.tar.gz&quot;&lt;/span&gt;
+wget -nc -P ~/Downloads/ &lt;span class=&quot;s2&quot;&gt;&quot;http://dev.mysql.com/get/Downloads/Connector-J/&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$MYSQL_J_BINARY&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+sudo tar zxf ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$MYSQL_J_BINARY&lt;/span&gt; -C &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/lib/
+sudo cp &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/lib/mysql-connector-java-5.1.38/mysql-connector-java-5.1.38-bin.jar  &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/lib/
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;JAVA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/usr/lib/jvm/java-8-openjdk-amd64/
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/config.sh
+&lt;span class=&quot;c&quot;&gt;# https://confluence.atlassian.com/jira/connecting-jira-to-mysql-185729489.html&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;c&quot;&gt;## JIRA 6 only&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://marketplace.atlassian.com/plugins/com.atlassian.jira.ext.commitacceptance/server/installation&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://confluence.atlassian.com/display/UPM/Installing+Add-ons#Installingadd-ons-installingversion1InstallingPlugins1typeadd-onsinJIRAandBamboo&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+&lt;span class=&quot;nv&quot;&gt;JIRA_CAP_BINARY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;commitacceptance-1.6.0.jar&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_ADDON_SITE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;https://marketplace-cdn.atlassian.com/files/artifact/5f9ba63d-ee6c-4633-9b7a-a26c644a2434&quot;&lt;/span&gt;
+wget -nc -P ~/Downloads/ &lt;span class=&quot;nv&quot;&gt;$JIRA_ADDON_SITE&lt;/span&gt;/&lt;span class=&quot;nv&quot;&gt;$JIRA_CAP_BINARY&lt;/span&gt;
+sudo cp ~/Downloads/&lt;span class=&quot;nv&quot;&gt;$JIRA_CAP_BINARY&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/atlassian-jira/WEB-INF/lib/
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh
+
+&lt;span class=&quot;c&quot;&gt;## stop-jira&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/stop-jira.sh
+sudo bash /etc/init.d/mysql stop
+&lt;span class=&quot;c&quot;&gt;## start-jira&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;JIRA_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;/opt/atlassian/jira&quot;&lt;/span&gt;
+sudo bash /etc/init.d/mysql start
+sudo bash &lt;span class=&quot;nv&quot;&gt;$JIRA_HOME&lt;/span&gt;/bin/start-jira.sh&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;references&quot;&gt;References&lt;/h1&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:CAP01&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://marketplace.atlassian.com/plugins/com.atlassian.jira.ext.commitacceptance/server/overview&quot;&gt;JIRA Commit Acceptance Plugin&lt;/a&gt; by Atlassian, Version 1.6.0 • JIRA Server 5.0 - 6.4.13 • Released 2012-02-22 &lt;a href=&quot;#fnref:CAP01&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>将Hyde风格移至到现有的Jekyll站点</title>
+   <link href="https://scozv.github.io/blog/zh/guide/2016/03/18/how-do-we-apply-the-hyde-theme-to-existing-jekyll-site"/>
+   <updated>2016-03-18T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/guide/2016/03/18/how-do-we-apply-the-hyde-theme-to-existing-jekyll-site</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;section&quot;&gt;摘要&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;本文描述了将Hyde风格移至到现有的Jekyll站点的步骤。主要的思路是：&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;了解Jekyll站点的渲染步骤；&lt;/li&gt;
+    &lt;li&gt;使用Meld比较&lt;code class=&quot;highlighter-rouge&quot;&gt;Hyde&lt;/code&gt;库和现有Jekyll站点的区别；&lt;/li&gt;
+    &lt;li&gt;替代并且测试&lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;p&gt;更详细的步骤需要参看英文版本。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;h1 id=&quot;jekyll&quot;&gt;Jekyll的文件结构&lt;/h1&gt;
+
+&lt;p&gt;参考__&lt;a href=&quot;https://jekyllrb.com/docs/structure/&quot;&gt;官方文档&lt;/a&gt;__，
+了解Jekyll的文件结构。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;.
+├── assets
+|   ├── css
+|   ├── js
+|   ├── img
+|   └── themes
+|       ├── &lt;span class=&quot;c&quot;&gt;# hyde&lt;/span&gt;
+|       └── bootstrap
+├── _includes
+|   ├── JB
+|   |   ├── comments_render_script
+|   |   ├── pages_list_script
+|   |   ├── analytics_render_script
+|   └── themes
+|       ├── &lt;span class=&quot;c&quot;&gt;# hyde&lt;/span&gt;
+|       └── bootstrap
+|           ├── default.html
+|           ├── page.html
+|           └── post.html
+├── _layouts
+|   ├── default.html
+|   ├── page.html
+|   └── post.html&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;jekyll-1&quot;&gt;Jekyll渲染的步骤&lt;/h1&gt;
+
+&lt;p&gt;更详细的解释需要参看英文版本，简言之：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_layout/*.html&lt;/code&gt;，HTML网页的入口&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/JB/*&lt;/code&gt;， HTML渲染的时候，可重用的代码&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./_includes/themes/&lt;/code&gt;, 页面风格定义&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./assets/themes/&lt;/code&gt;, 公共的静态资源——图片、样式文件等&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;hyde&quot;&gt;应用Hyde页面风格的步骤&lt;/h1&gt;
+
+&lt;p&gt;更详细的解释需要参看英文版本。&lt;/p&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>用于需求分析、开发以至持续集成的源代码管理工作模式</title>
+   <link href="https://scozv.github.io/blog/zh/pattern/2015/09/04/a-vcs-project-workflow-for-requirement-coding-and-ci"/>
+   <updated>2015-09-04T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/pattern/2015/09/04/a-vcs-project-workflow-for-requirement-coding-and-ci</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;section&quot;&gt;摘要&lt;/h1&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;开发团队中，使用Word或者PDF文档，或者邮件来描述需求，可能导致同样内容的文档出现在不同成员的电脑上，进而可能导致
+版本不一致。另外两次版本的需求更改，很难进行差异比较（Word和PDF文档不是简单的文本文件）。
+一种解决方案是，使用文本文件（比如Markdown或者LaTeX）来描述需求，并将所有的文件纳入源代码管理。
+所以，本文描述的这个工作流，将所有的文档纳入源代码管理。同时还将提到：&lt;/p&gt;
+
+  &lt;ul&gt;
+    &lt;li&gt;使用Issue来跟踪需求、变更和问题解决&lt;/li&gt;
+    &lt;li&gt;产品、测试和开发等不同角色如何便捷的使用Bitbucket来提出并跟踪任务&lt;/li&gt;
+    &lt;li&gt;一些基本的工具，比如c9.io，或者git的基本用法&lt;/li&gt;
+    &lt;li&gt;Markdown的基本语法&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-1&quot; id=&quot;markdown-toc-section-1&quot;&gt;环境准备&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#atlassian&quot; id=&quot;markdown-toc-atlassian&quot;&gt;了解Atlassian&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#bitbucket&quot; id=&quot;markdown-toc-bitbucket&quot;&gt;注册Bitbucket&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#git&quot; id=&quot;markdown-toc-git&quot;&gt;操作系统和Git环境&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#git-1&quot; id=&quot;markdown-toc-git-1&quot;&gt;Git环境简介&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-2&quot; id=&quot;markdown-toc-section-2&quot;&gt;编辑文本文档&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#ubuntu&quot; id=&quot;markdown-toc-ubuntu&quot;&gt;Ubuntu系统下的建议&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#windows&quot; id=&quot;markdown-toc-windows&quot;&gt;Windows系统下的建议&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#c9io&quot; id=&quot;markdown-toc-c9io&quot;&gt;使用c9.io&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-3&quot; id=&quot;markdown-toc-section-3&quot;&gt;移动端的访问&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-4&quot; id=&quot;markdown-toc-section-4&quot;&gt;不同角色的工作流程&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-5&quot; id=&quot;markdown-toc-section-5&quot;&gt;产品和需求的变更&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#mention&quot; id=&quot;markdown-toc-mention&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;@&lt;/code&gt;mention&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#email-notification&quot; id=&quot;markdown-toc-email-notification&quot;&gt;Email Notification&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-6&quot; id=&quot;markdown-toc-section-6&quot;&gt;附录&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-7&quot; id=&quot;markdown-toc-section-7&quot;&gt;全局规则&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-8&quot; id=&quot;markdown-toc-section-8&quot;&gt;文件命名&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-9&quot; id=&quot;markdown-toc-section-9&quot;&gt;源代码存放的文件要求&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#markdown&quot; id=&quot;markdown-toc-markdown&quot;&gt;Markdown基本语法介绍&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#latex&quot; id=&quot;markdown-toc-latex&quot;&gt;LaTeX基本语法介绍&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#git-2&quot; id=&quot;markdown-toc-git-2&quot;&gt;常用的Git场景&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#commitgbundo&quot; id=&quot;markdown-toc-commitgbundo&quot;&gt;如何修改最近一次commit的备注&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#stcheckout&quot; id=&quot;markdown-toc-stcheckout&quot;&gt;想暂时回到某一个历史版本&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-10&quot; id=&quot;markdown-toc-section-10&quot;&gt;如何在当前的版本上做一些实验性的修改，但不确定是否提交&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#c9io-1&quot; id=&quot;markdown-toc-c9io-1&quot;&gt;c9.io的基本环境配置&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#bitbucketgithubacadamic-license&quot; id=&quot;markdown-toc-bitbucketgithubacadamic-license&quot;&gt;Bitbucket和Github在Acadamic License上的比较&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-11&quot; id=&quot;markdown-toc-section-11&quot;&gt;参考文献&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;环境准备&lt;/h1&gt;
+&lt;p&gt;本文提到的“环境”，不是开发环境，而是对每个成员都是适用的基本工作环境。&lt;/p&gt;
+
+&lt;p&gt;本文提到的“源代码”，不仅仅是开发代码，而是团队运行过程中所有的文档，包括：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;需求文档及附件&lt;/li&gt;
+  &lt;li&gt;团队工作流程&lt;/li&gt;
+  &lt;li&gt;统一的开发风格文档&lt;/li&gt;
+  &lt;li&gt;其它所有和团队有关，并需要记录的文档&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;所有输出的成品，比如编译生成的PDF文件，不应该纳入源代码管理。&lt;/p&gt;
+
+&lt;h2 id=&quot;atlassian&quot;&gt;了解Atlassian&lt;/h2&gt;
+
+&lt;p&gt;Atlassian的&lt;a href=&quot;https://www.atlassian.com/software&quot;&gt;产品线&lt;/a&gt;比较全面，
+我目前使用的三个是：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;JIRA：Issue系统&lt;/li&gt;
+  &lt;li&gt;Bitbucket：Git源代码管理&lt;/li&gt;
+  &lt;li&gt;Bamboo：CI系统&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;目前，每一个产品都有如下两个版本：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Cloud：由Atlassian托管的SaaS服务&lt;/li&gt;
+  &lt;li&gt;Server：自主托管的软件&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;两个版本除了部署托管方式不同，页面和使用方式都非常类似。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;所以，在同一个产品的不同版本之间相互迁移，不会造成用户体验的不习惯。&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;比如：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Bitbucket Cloud：对应的网址是如下，所有的源代码托管到Atlassian服务器&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;https://bitbucket.org
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Bitbucket Server（原名叫Stash）：个人或企业自主购买服务器，自主部署&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;bitbucket&quot;&gt;注册Bitbucket&lt;/h2&gt;
+&lt;p&gt;首先注册一个&lt;a href=&quot;https://bitbucket.org&quot;&gt;bitbucket.org&lt;/a&gt;账号，bitbucket是一个在线的源代码管理系统，支持多个私有库，
+默认每个库支持5位成员协同工作。&lt;/p&gt;
+
+&lt;p&gt;进入bitbucket页面之后，左侧导航栏常用的菜单为：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;提交（commits）：用来查看所有的版本信息&lt;/li&gt;
+  &lt;li&gt;问题（issues）：所有的问题列表，可对每一个问题进行讨论，并跟踪当前问题的处理进度&lt;/li&gt;
+  &lt;li&gt;下载（downloads）：可以将每一个阶段的文档整理成PDF文件，存放到“下载”表中，以便向团队之外人展示&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Bitbucket支持在线编辑和预览Markdown文档。&lt;/p&gt;
+
+&lt;h2 id=&quot;git&quot;&gt;操作系统和Git环境&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;建议使用Ubuntu操作系统，便于自动化脚本的管理&lt;/li&gt;
+  &lt;li&gt;如果使用Windows系统，需要安装&lt;a href=&quot;https://git-for-windows.github.io/&quot;&gt;Git-for-windows&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;可以尝试使用CloudIDE，推荐使用&lt;a href=&quot;https://c9.io&quot;&gt;c9.io&lt;/a&gt;或者&lt;a href=&quot;https://Koding.io&quot;&gt;Koding.io&lt;/a&gt;，
+这两个云端IDE都配置了Ubuntu的虚机&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;git-1&quot;&gt;Git环境简介&lt;/h2&gt;
+
+&lt;p&gt;当团队成员获得了某一个源代码仓库（repo）的访问权限之后，需要安装Git环境，用来提交和查看不是时期的源代码。&lt;/p&gt;
+
+&lt;!--* Linux用户建议在`Bash`环境下使用Git--&gt;
+&lt;!--* Mac用户可以通过--&gt;
+&lt;!--* Windows用户可以安装[TortoiseGit] [1]或者[Git for Windows] [2]--&gt;
+
+&lt;p&gt;建议在&lt;code class=&quot;highlighter-rouge&quot;&gt;Bash&lt;/code&gt;环境下使用Git。&lt;/p&gt;
+
+&lt;p&gt;Git的仓库（repo）有三类：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;服务器上的中心库，指的是托管在bitbucket.org上的库，每一位成员需要不时地从服务器上获取最新的源代码，同时也要将自己的
+更改提交保存到服务器上&lt;/li&gt;
+  &lt;li&gt;其他成员电脑上的库，只有当其他成员将他们的更改提交到了服务器上，我们才能获取更新，看到这些更改&lt;/li&gt;
+  &lt;li&gt;本地自己的库，同样的，只有我们将自己的更改提交到服务器，团队其他成员才能获取我们的更新&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;一般而言，Git环境的基本流程是：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 0. 克隆或更新本地库，将服务器上的变更，更新到本地&lt;/span&gt;
+git pull
+&lt;span class=&quot;c&quot;&gt;# 0. 修改、编辑源代码，标记变更的文件，并为本次变更添加一个描述&lt;/span&gt;
+git add file_changed.txt
+git commit -m &lt;span class=&quot;s1&quot;&gt;&#39;本次变更的描述信息&#39;&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 0. 可以重复上一个步骤，多次变更文件&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 0. 一并提交本地的所有的更新到服务器上&lt;/span&gt;
+git push&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;section-2&quot;&gt;编辑文本文档&lt;/h2&gt;
+
+&lt;h3 id=&quot;ubuntu&quot;&gt;Ubuntu系统下的建议&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;如果有能力，请用&lt;code class=&quot;highlighter-rouge&quot;&gt;vim&lt;/code&gt;或&lt;code class=&quot;highlighter-rouge&quot;&gt;emacs&lt;/code&gt;。（&lt;strong&gt;友情提示：这两个编辑器的学习比较耗时，请合理安排时间&lt;/strong&gt;）&lt;/li&gt;
+  &lt;li&gt;使用开源的&lt;a href=&quot;https://atom.io/&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;atom.io&lt;/code&gt;&lt;/a&gt;编辑器，可以使用&lt;a href=&quot;https://launchpad.net/~webupd8team/+archive/ubuntu/atom&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;webupd8team&lt;/code&gt;提供的&lt;code class=&quot;highlighter-rouge&quot;&gt;ppa&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;付费使用&lt;a href=&quot;https://www.sublimetext.com/&quot;&gt;Sublime Text&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;windows&quot;&gt;Windows系统下的建议&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;使用开源的&lt;a href=&quot;https://atom.io/&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;atom.io&lt;/code&gt;&lt;/a&gt;编辑器&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;c9io&quot;&gt;使用c9.io&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;
+https://c9.io
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;这是一个网页版的代码编辑器，在一些个人电脑环境有限的情况下，可以直接在网页里面写代码。&lt;/p&gt;
+
+&lt;p&gt;特色是：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;登录之后，整个环境就是你上次的文档环境，不管你在什么操作系统上，只要你能上网&lt;/li&gt;
+  &lt;li&gt;代码高亮&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;同步预览，一边编辑&lt;code class=&quot;highlighter-rouge&quot;&gt;.md&lt;/code&gt;文件，一边查看最终的效果&lt;/li&gt;
+  &lt;li&gt;智能提示&lt;/li&gt;
+  &lt;li&gt;更重要的是，提供了一个具有&lt;code class=&quot;highlighter-rouge&quot;&gt;su&lt;/code&gt;权限的&lt;code class=&quot;highlighter-rouge&quot;&gt;Ubuntu&lt;/code&gt;的&lt;code class=&quot;highlighter-rouge&quot;&gt;Terminal&lt;/code&gt;，也就
+意味着，你在网页里面可以使用一个&lt;code class=&quot;highlighter-rouge&quot;&gt;Ubuntu&lt;/code&gt;操作系统了&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;section-3&quot;&gt;移动端的访问&lt;/h2&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;iOS&lt;/code&gt;上使用&lt;a href=&quot;https://itunes.apple.com/cn/app/codebucket-bitbucket-for-ios/id551531422?&quot;&gt;CodeBucket&lt;/a&gt;访问源代码库。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Android&lt;/code&gt;平台使用&lt;a href=&quot;http://www.coolapk.com/apk/fi.iki.kuitsi.bitbeaker&quot;&gt;Bitbeaker&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;移动端通常可用于问题的讨论。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-4&quot;&gt;不同角色的工作流程&lt;/h1&gt;
+
+&lt;h2 id=&quot;section-5&quot;&gt;产品和需求的变更&lt;/h2&gt;
+&lt;p&gt;需求最开始可以在问题（issue） 列表中讨论，逐步反映到需求文档中，具体而言：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;新增一个问题（issue）&lt;/li&gt;
+  &lt;li&gt;团队成员在每一个问题的评论中讨论&lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;编写对应的需求文档，并在提交的时候，关联问题编号（使用英文字符井号&lt;code class=&quot;highlighter-rouge&quot;&gt;#&lt;/code&gt;）&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git commit -m &#39;新增某某需求，参考问题 #1&#39;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;mention&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;@&lt;/code&gt;mention&lt;/h2&gt;
+
+&lt;p&gt;在issue的讨论中，可以使用&lt;code class=&quot;highlighter-rouge&quot;&gt;@username&lt;/code&gt;提及某一个队员，一般来说，对方会收到一封邮件，
+所以为了方便，请使用 &lt;strong&gt;简短&lt;/strong&gt; 并且容易在键盘上打出来的&lt;code class=&quot;highlighter-rouge&quot;&gt;username&lt;/code&gt;。&lt;/p&gt;
+
+&lt;p&gt;另外，我建议：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;请将你的&lt;code class=&quot;highlighter-rouge&quot;&gt;username&lt;/code&gt;视为开源开发社区的一个身份，所以尽量，在如下开发者社区使用同样的&lt;code class=&quot;highlighter-rouge&quot;&gt;username&lt;/code&gt;：
+    &lt;ul&gt;
+      &lt;li&gt;Bitbucket.org&lt;/li&gt;
+      &lt;li&gt;c9.io&lt;/li&gt;
+      &lt;li&gt;github.com&lt;/li&gt;
+      &lt;li&gt;gitlab.com&lt;/li&gt;
+      &lt;li&gt;stackexchange.com&lt;/li&gt;
+      &lt;li&gt;stackoverflow.com&lt;/li&gt;
+      &lt;li&gt;mail.yandex.com&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;可以使用同样的邮箱&lt;/li&gt;
+  &lt;li&gt;如果刚刚进入开源开发社区，可以修改你觉得不合适的&lt;code class=&quot;highlighter-rouge&quot;&gt;username&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;确定&lt;code class=&quot;highlighter-rouge&quot;&gt;username&lt;/code&gt;之后，或者使用了很久的&lt;code class=&quot;highlighter-rouge&quot;&gt;username&lt;/code&gt;，永远不要修改&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;email-notification&quot;&gt;Email Notification&lt;/h2&gt;
+
+&lt;p&gt;除了用于登录、注册的邮箱外，如果你想及时地收到Notification（比如某人&lt;code class=&quot;highlighter-rouge&quot;&gt;@&lt;/code&gt;了你），
+可以在个人设置中，添加一个额外的邮箱地址。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-6&quot;&gt;附录&lt;/h1&gt;
+
+&lt;h2 id=&quot;section-7&quot;&gt;全局规则&lt;/h2&gt;
+
+&lt;h3 id=&quot;section-8&quot;&gt;文件命名&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;所有的文件名称只包含英文字母、数字和下划线，比如：&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  requirement_001_user_login.md
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;所有的文件名不要出现空格和其它特殊字符&lt;/li&gt;
+  &lt;li&gt;所有的文本文件，比如&lt;code class=&quot;highlighter-rouge&quot;&gt;.md&lt;/code&gt;，都设置为&lt;code class=&quot;highlighter-rouge&quot;&gt;UTF-8&lt;/code&gt;编码，以免中文字体出现乱码&lt;/li&gt;
+  &lt;li&gt;所有的附件（图片、PPT文件等），使用简短的文件名描述图片内容，并在文档中注明&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-9&quot;&gt;源代码存放的文件要求&lt;/h3&gt;
+
+&lt;p&gt;源代码存放的文件，都要能够做比较（&lt;code class=&quot;highlighter-rouge&quot;&gt;git diff&lt;/code&gt;）。&lt;/p&gt;
+
+&lt;p&gt;对于诸如，&lt;code class=&quot;highlighter-rouge&quot;&gt;.pdf&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;.exe&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;.ppt&lt;/code&gt;等文件，是不适合做&lt;code class=&quot;highlighter-rouge&quot;&gt;git diff&lt;/code&gt;的，因为如果
+使用&lt;code class=&quot;highlighter-rouge&quot;&gt;text&lt;/code&gt;文本编辑器打开这些文件，看到的都是二进制编码。&lt;/p&gt;
+
+&lt;p&gt;如下文件，需要通过源代码管理：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;所有的&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;文档的源文件：&lt;code class=&quot;highlighter-rouge&quot;&gt;.md&lt;/code&gt;，包括：
+    &lt;ul&gt;
+      &lt;li&gt;面向开发者的文档&lt;/li&gt;
+      &lt;li&gt;团队的规范文档&lt;/li&gt;
+      &lt;li&gt;必要的会议记录&lt;/li&gt;
+      &lt;li&gt;所有的需求文档&lt;/li&gt;
+      &lt;li&gt;其它&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;有能力的团队，可以使用&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;来编写文档，参考&lt;a href=&quot;http://scozv.github.io/help/2015/08/12/introduction-of-building-documents-with-latex&quot;&gt;此处&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;所有的源代码&lt;/li&gt;
+  &lt;li&gt;必要的配置文件，注意区分开发环境和生产环境，同时，注意生产配置的保密&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;如下的文件，请不要放到源代码托管，&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;如下的文件，请不要放到源代码托管，&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;如下的文件，请不要放到源代码托管：&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;del&gt;源代码的编译产物，比如&lt;code class=&quot;highlighter-rouge&quot;&gt;dll&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;exe&lt;/code&gt;或者其它编译后的文件&lt;/del&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;del&gt;非文本的文档，比如&lt;code class=&quot;highlighter-rouge&quot;&gt;pdf&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;docs&lt;/code&gt;等&lt;/del&gt;，参考&lt;a href=&quot;https://github.com/weijianwen/SJTUThesis/issues/26&quot;&gt;这个讨论&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;del&gt;源代码的dependencies，比如&lt;code class=&quot;highlighter-rouge&quot;&gt;Node.js&lt;/code&gt;项目里面的&lt;code class=&quot;highlighter-rouge&quot;&gt;node_modules&lt;/code&gt;文件夹&lt;/del&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;参考常用的&lt;code class=&quot;highlighter-rouge&quot;&gt;gitignore&lt;/code&gt;文件：&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;
+https://github.com/github/gitignore
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;markdown&quot;&gt;Markdown基本语法介绍&lt;/h2&gt;
+&lt;p&gt;bitbucket中可以直接编辑和预览文件。
+详细的语法说明，可以参考：https://bitbucket.org/tutorials/markdowndemo/overview&lt;/p&gt;
+
+&lt;p&gt;常用的语法有如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;目录&lt;/p&gt;
+
+    &lt;p&gt;在文档的开始，使用&lt;code class=&quot;highlighter-rouge&quot;&gt;[TOC]&lt;/code&gt;来自动生成文章的目录，比如&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-md&quot; data-lang=&quot;md&quot;&gt;&lt;span class=&quot;gh&quot;&gt;# 第一章&lt;/span&gt;
+第一章内容
+&lt;span class=&quot;gu&quot;&gt;## 1.1小节&lt;/span&gt;
+&lt;span class=&quot;gu&quot;&gt;## 1.2小节&lt;/span&gt;
+&lt;span class=&quot;gh&quot;&gt;# 第二章&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;换行&lt;/p&gt;
+
+    &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;中的换行需要敲两下回车，
+一个回车不会换行。
+这样的好处是，我们在编写文档的过程中，
+每行不会太长，便于我们阅读。
+不管是文档还是代码，如果每行的内容
+太多的话，我们就要拖动
+页面下方的水平滚动条，
+来查看和阅读
+这一行后面的内容。
+如果，真的这样的话，想必是很
+不方便的。&lt;/p&gt;
+
+    &lt;p&gt;比如，“换行”这一小节的&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;源代码如下，同时，我们不需要让每行段落，
+过长，比如两种源代码，最终的显示效果一样：&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-md&quot; data-lang=&quot;md&quot;&gt;&lt;span class=&quot;sb&quot;&gt;`Markdown`&lt;/span&gt;中的换行需要敲两下回车，
+一个回车不会换行。
+这样的好处是，我们在编写文档的过程中，
+每行不会太长，便于我们阅读。
+不管是文档还是代码，如果每行的内容
+太多的话，我们就要拖动
+页面下方的水平滚动条，
+来查看和阅读
+这一行后面的内容。
+如果，真的这样的话，想必是很
+不方便的。
+
+比如，“换行”这一小节的&lt;span class=&quot;sb&quot;&gt;`Markdown`&lt;/span&gt;源代码如下，
+同时，我们不需要让每行段落，
+过长，比如两种源代码，最终的显示效果一样：&lt;span class=&quot;sb&quot;&gt;
+
+
+`Markdown`&lt;/span&gt;中的换行需要敲两下回车，一个回车不会换行。  这样的好处是，我们在编写文档的过程中，  每行不会太长，便于我们阅读。  不管是文档还是代码，如果每行的内容 太多的话，我们就要拖动  页面下方的水平滚动条，  来查看和阅读  这一行后面的内容。  如果，真的这样的话，想必是很  不方便的。
+
+比如，“换行”这一小节的&lt;span class=&quot;sb&quot;&gt;`Markdown`&lt;/span&gt;源代码如下，同时，我们不需要让每行段落，过长，比如两种源代码，最终的显示效果一样：&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;章节级别&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-md&quot; data-lang=&quot;md&quot;&gt;&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 使用一个井号，来表示章节1，比如 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;gh&quot;&gt;# Heading 1&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 使用两个井号，来表示第二级章节，比如 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;gu&quot;&gt;## Heading 1.1&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 可以向下一直写到第五级，即 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;gu&quot;&gt;##### Heading 1.1.1.1.1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;粗体和斜体&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-md&quot; data-lang=&quot;md&quot;&gt;&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 用两个星号包围需要加粗的字体： --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;gs&quot;&gt;**粗体**&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;&amp;lt;!-- 用一个星号包围需要倾斜的字体： --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;ge&quot;&gt;*斜体*&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;超链接&lt;/p&gt;
+
+    &lt;p&gt;通常超链接的语法如下：&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-md&quot; data-lang=&quot;md&quot;&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;Markdown 语法&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;](&lt;/span&gt;&lt;span class=&quot;sx&quot;&gt;https://daringfireball.net/projects/markdown/syntax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;列表&lt;/p&gt;
+
+    &lt;p&gt;使用一个井号，标记列表中的元素，比如&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-md&quot; data-lang=&quot;md&quot;&gt;&lt;span class=&quot;p&quot;&gt;*&lt;/span&gt; Item one
+&lt;span class=&quot;p&quot;&gt;*&lt;/span&gt; Item two
+&lt;span class=&quot;p&quot;&gt;*&lt;/span&gt; Item three&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;表格&lt;/p&gt;
+
+    &lt;p&gt;注意，下列语法中的短横线只需要使用一个就够了，列之间用竖线分割。&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-md&quot; data-lang=&quot;md&quot;&gt;第一列的表头       | 第二列的表头
+-----------------| -------------
+第一行第一列的内容  | 第一行第二列的内容
+第二行第一列的内容  | 第二行第二列的内容&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;latex&quot;&gt;LaTeX基本语法介绍&lt;/h2&gt;
+
+&lt;h2 id=&quot;git-2&quot;&gt;常用的Git场景&lt;/h2&gt;
+&lt;p&gt;本小节主要参考文献[Chacon and Straub, 2014] &lt;sup id=&quot;fnref:pro_git2&quot;&gt;&lt;a href=&quot;#fn:pro_git2&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;p&gt;下列的代码段中，以&lt;code class=&quot;highlighter-rouge&quot;&gt;$&lt;/code&gt;打头的命令需要在&lt;code class=&quot;highlighter-rouge&quot;&gt;bash&lt;/code&gt;中执行。其余的为命令执行的结果。&lt;/p&gt;
+
+&lt;h3 id=&quot;commitgbundo&quot;&gt;如何修改最近一次commit的备注&lt;sup id=&quot;fnref:gb_undo&quot;&gt;&lt;a href=&quot;#fn:gb_undo&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/h3&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git commit --amend&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;stcheckout&quot;&gt;想暂时回到某一个历史版本&lt;sup id=&quot;fnref:st_checkout&quot;&gt;&lt;a href=&quot;#fn:st_checkout&quot; class=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt;&lt;/h3&gt;
+
+&lt;p&gt;有的时候，突然发现了一个问题，但是明明记得之前某个时间段是正常的。
+此时，需要回到之前的某一个版本（commit），尝试找到是哪一次提交引发了该问题。&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 0. 列出最近的一系列提交&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git log --pretty&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;oneline -n 20 --graph --abbrev-commit
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; 9ecb341 fix markdown href syntax
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; 3f0828b fix markdown coding syntax
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; 72fc362 fix markdown syntax
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; 4175860 draft &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;vcs wrkflow
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; 94259e0 fix typo of lataxing
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; 8ecbced no center &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;equation
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; 794bcee blockquote equation
+&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt; b0ca566 fix div &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;markdown
+
+&lt;span class=&quot;c&quot;&gt;# 0. 临时返回到之前的某一次提交&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git checkout 94259e0
+
+&lt;span class=&quot;c&quot;&gt;# 0. 使用二分查找，反复执行`git checkout`，直到定位到某两个**相邻**的版本，也即，&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 前一个版本还是正常的，后一个版本就出现了问题&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 0. 比较这两个**相邻**版本的差异，分析问题&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git diff 4175860 94259e0
+
+&lt;span class=&quot;c&quot;&gt;# 0. 回撤这些临时版本&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git checkout master&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;section-10&quot;&gt;如何在当前的版本上做一些实验性的修改，但不确定是否提交&lt;/h3&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 充分利用Git的Branch特性，在当前的版本上创建一个分支，然后做实验性的修改。&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git branch experiment
+
+&lt;span class=&quot;c&quot;&gt;# 确认了这些修改之后，可以将实验分支上的更改合并到当前位置&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git checkout master
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;git merge master experiment&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;另外，关于分支合并，&lt;code class=&quot;highlighter-rouge&quot;&gt;rebase&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;merge&lt;/code&gt;的区别可以参考&lt;a href=&quot;https://www.atlassian.com/git/tutorials/merging-vs-rebasing&quot;&gt;这篇文章&lt;/a&gt;（这个区别一般
+只有开发才会用到）。简单理解：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;merge&lt;/code&gt;是将两条路径的最后一个节点合并在一起，然后继续往下走&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rebase&lt;/code&gt;是将旁边路径上的更改，反映到当前路径上。原先的两条路径不会有交点，但是当前路径上的每一分提交都会被重写，从而反映
+旁边路径上的更改&lt;/li&gt;
+  &lt;li&gt;如果当前路径上的某些提交已经更新（&lt;code class=&quot;highlighter-rouge&quot;&gt;git push&lt;/code&gt;）到了服务器，则需要重新获取历史版本（&lt;code class=&quot;highlighter-rouge&quot;&gt;git pull&lt;/code&gt;）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;c9io-1&quot;&gt;c9.io的基本环境配置&lt;/h2&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# create workspace&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# private&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# choose a EMPTY template&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# generate SSH key for Git server,&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# https://confluence.atlassian.com/x/YwV9E&lt;/span&gt;
+ssh-keygen -t rsa -b 4096
+vi ~/.ssh/id_rsa.pub
+&lt;span class=&quot;c&quot;&gt;# start the ssh-agent in the background&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;eval&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;ssh-agent -s&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+ssh-add ~/.ssh/id_rsa
+&lt;span class=&quot;c&quot;&gt;# record SSH key into Github and Bitbucket&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# clone Git repo into c9.io&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# git clone git@bitbucket.org:username/repo.git&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;bitbucketgithubacadamic-license&quot;&gt;Bitbucket和Github在Acadamic License上的比较&lt;/h2&gt;
+
+&lt;p&gt;在Acadamic License结束之后，Bitbucket依然允许5人小组的私有库，但是Github需要付费，才能继续使用私有库。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-11&quot;&gt;参考文献&lt;/h1&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:pro_git2&quot;&gt;
+      &lt;p&gt;Chacon, S. and Straub, B. (2014). Pro Git, Second Edition.: NY. Apress. &lt;a href=&quot;#fnref:pro_git2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:gb_undo&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://git-scm.com/book/en/v2/Git-Basics-Undoing-Things&quot;&gt;Git Basics - Undoing Things&lt;/a&gt; &lt;a href=&quot;#fnref:gb_undo&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:st_checkout&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;http://stackoverflow.com/a/4114122&quot;&gt;Temporarily switch to a different commit&lt;/a&gt; &lt;a href=&quot;#fnref:st_checkout&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>介绍专业的文档系统LaTeX</title>
+   <link href="https://scozv.github.io/blog/zh/guide/2015/08/12/introduction-of-building-documents-with-latex"/>
+   <updated>2015-08-12T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/guide/2015/08/12/introduction-of-building-documents-with-latex</id>
+   <content type="html">
+&lt;!--2015-08-10-introduction-of-building-documents-with-latex--&gt;
+
+&lt;h1 class=&quot;no_toc&quot; id=&quot;section&quot;&gt;摘要&lt;/h1&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;家族是一个专业的排版系统。本文简要地介绍了&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;家族的常见成员，
+并整理出了&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;入门使用过程中会遇到的一些问题，&lt;/p&gt;
+
+  &lt;p&gt;同时，将演示&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;在网页中的集成。最后在附录部分，给出了样式模板的参考代码。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#tex&quot; id=&quot;markdown-toc-tex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;家族简介&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#tex-1&quot; id=&quot;markdown-toc-tex-1&quot;&gt;为什么使用&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;家族排版&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#tex-2&quot; id=&quot;markdown-toc-tex-2&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;的使用说明&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#texlatex&quot; id=&quot;markdown-toc-texlatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的区别&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#tex-3&quot; id=&quot;markdown-toc-tex-3&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;注重排版&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#latex&quot; id=&quot;markdown-toc-latex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;注重内容&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-1&quot; id=&quot;markdown-toc-section-1&quot;&gt;样例模板参考&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#latex-1&quot; id=&quot;markdown-toc-latex-1&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的格式样例&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-2&quot; id=&quot;markdown-toc-section-2&quot;&gt;学术论文格式样例&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-3&quot; id=&quot;markdown-toc-section-3&quot;&gt;编译命令参考&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#latexwebkatex&quot; id=&quot;markdown-toc-latexwebkatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;在Web页面的使用——基于&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;库&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#jekyllkatex&quot; id=&quot;markdown-toc-jekyllkatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Jekyll&lt;/code&gt;中的集成&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#gitbookkatex&quot; id=&quot;markdown-toc-gitbookkatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gitbook&lt;/code&gt;中的集成&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-4&quot; id=&quot;markdown-toc-section-4&quot;&gt;附录&lt;/a&gt;    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#latex-2&quot; id=&quot;markdown-toc-latex-2&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;使用过程中的问题列表&lt;/a&gt;        &lt;ul&gt;
+          &lt;li&gt;&lt;a href=&quot;#latex-font-warning-font-shape-undefined&quot; id=&quot;markdown-toc-latex-font-warning-font-shape-undefined&quot;&gt;LaTeX Font Warning: Font shape undefined&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#latex-error-file-multindsty-not-found&quot; id=&quot;markdown-toc-latex-error-file-multindsty-not-found&quot;&gt;latex error: file `multind.sty’ not found&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#makeindex-financemulti-index&quot; id=&quot;markdown-toc-makeindex-financemulti-index&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;makeindex finance&lt;/code&gt;不会生成Multi Index页面&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#xecjk-error-key-unknown&quot; id=&quot;markdown-toc-xecjk-error-key-unknown&quot;&gt;xeCJK error: “key-unknown”&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#cjk&quot; id=&quot;markdown-toc-cjk&quot;&gt;CJK字体的选用&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#cjk-1&quot; id=&quot;markdown-toc-cjk-1&quot;&gt;CJK字体不能在数学公式环境中显示&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#emphtextbf&quot; id=&quot;markdown-toc-emphtextbf&quot;&gt;使用强调&lt;code class=&quot;highlighter-rouge&quot;&gt;\emph&lt;/code&gt;而非加粗&lt;code class=&quot;highlighter-rouge&quot;&gt;\textbf&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-5&quot; id=&quot;markdown-toc-section-5&quot;&gt;编译之后的文档输出有乱码&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-6&quot; id=&quot;markdown-toc-section-6&quot;&gt;文献引用编号显示为&lt;code class=&quot;highlighter-rouge&quot;&gt;[?]&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-7&quot; id=&quot;markdown-toc-section-7&quot;&gt;修改目录中“索引”的层级&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href=&quot;#section-8&quot; id=&quot;markdown-toc-section-8&quot;&gt;定义“摘要”章节的样式&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#section-9&quot; id=&quot;markdown-toc-section-9&quot;&gt;模板样例&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-10&quot; id=&quot;markdown-toc-section-10&quot;&gt;参考文献&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;tex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;家族简介&lt;/h1&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;可以视为出版行业的专业排版系统，由&lt;a href=&quot;http://www-cs-faculty.stanford.edu/~knuth/&quot;&gt;Donald Knuth&lt;/a&gt;于1978年发布，
+当前的稳定版本编号为&lt;a href=&quot;https://en.wikipedia.org/wiki/TeX&quot; title=&quot;TeX Wikipage&quot;&gt;&lt;script type=&quot;math/tex&quot;&gt;3.14159265&lt;/script&gt;&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;是脚本化的排版系统，所有的排版格式都是用&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;语法描述的。比如使用&lt;code class=&quot;highlighter-rouge&quot;&gt;\begin{tabular} \end{tabular}&lt;/code&gt;来绘制表格。
+&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;接收一系列的语法命令和文本内容，经过&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;系统编译（macro compiler）之后，输出到显示屏、&lt;code class=&quot;highlighter-rouge&quot;&gt;DVI&lt;/code&gt;或者&lt;code class=&quot;highlighter-rouge&quot;&gt;PDF&lt;/code&gt;文档。
+对于同样的一份&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;脚本，在任意的环境下编译后的输出文档：格式、字体、间距等都应该是一样的。&lt;/p&gt;
+
+&lt;p&gt;在&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;的基础上，可以定义一系列的宏包（macro），可以更方便地描述排版样式。比如上述的表格语法，其实来自&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;宏包，
+如果要使用纯&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;（plain &lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;）来绘制表格，则要使用更多的排版命令
+（参考这两个网页文献 &lt;a href=&quot;http://www.volkerschatz.com/tex/halign.html&quot;&gt;A&lt;/a&gt;、
+&lt;a href=&quot;http://tex.stackexchange.com/questions/183235/vertically-aligned-table-in-plaintex-latex-context-etc&quot;&gt;B&lt;/a&gt; ）。
+&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;是非常流行的宏包，除此之外还有&lt;code class=&quot;highlighter-rouge&quot;&gt;AMS-TeX&lt;/code&gt;、&lt;code class=&quot;highlighter-rouge&quot;&gt;XeTeX&lt;/code&gt;等&lt;sup id=&quot;fnref:TUG01&quot;&gt;&lt;a href=&quot;#fn:TUG01&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;h1 id=&quot;tex-1&quot;&gt;为什么使用&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;家族排版&lt;/h1&gt;
+&lt;p&gt;和Office这类所见所得的文档处理器不同的是，&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;系列使用大量的命令来描述排版格式。
+此外，所见非得的&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;和所见即得的Office相比：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;，不需要考虑软件的版权费用问题，它是免费的。&lt;/li&gt;
+  &lt;li&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;，不需要担心跨软件、跨平台的格式兼容问题。
+不同的Office软件在排版格式上并不完全兼容，即使同一个软件公司的不同Office版本，
+格式上也不完全兼容。但是，同样的一份&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;文档，经过不同的环境编译之后，输出的排版都是完全一样的。&lt;/li&gt;
+  &lt;li&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;，精力可以放在撰写文档的内容，而非花大量的时间，用鼠标选中不同的文本段落，调整大量的排版样式。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;更多用于学术领域，很多出版社、大学会提供指定的学术论文模板，
+比如&lt;a href=&quot;http://web.mit.edu/thesis/tex/&quot; title=&quot;MIT Thesis LaTeX Template&quot;&gt;MIT thesis templates&lt;/a&gt;或者非官方的&lt;a href=&quot;https://github.com/weijianwen/SJTUThesis&quot; title=&quot;SJTU Thesis LaTeX Template&quot;&gt;上海交通大学学位论文模板&lt;/a&gt;。使用这些
+模板，基本上不用考虑排版格式的问题，只要专心写文章就好了。&lt;/li&gt;
+  &lt;li&gt;很多专业的学术语言——复杂的数学公式，化学分子式，五线谱，电路图——是没法仅仅使用Office就能编写的。&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;可以&lt;sup id=&quot;fnref:WIK01&quot;&gt;&lt;a href=&quot;#fn:WIK01&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;文档是一个普通的文本文档，这意味着，可以进行源代码的版本管理。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;类似的所见非得系统还有&lt;a href=&quot;http://daringfireball.net/projects/markdown/&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;&lt;/a&gt;，不过，&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;更常用于网页展示：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;语法定义了不同的&lt;code class=&quot;highlighter-rouge&quot;&gt;HTML&lt;/code&gt;节点；&lt;/li&gt;
+  &lt;li&gt;不同的&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;处理系统（在线编译网站，或者软件）定义不同的&lt;code class=&quot;highlighter-rouge&quot;&gt;CSS&lt;/code&gt;样式；&lt;/li&gt;
+  &lt;li&gt;使得同样的&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;文档，最终的展示并不一样。以“&lt;code class=&quot;highlighter-rouge&quot;&gt;online markdown&lt;/code&gt;”为关键字搜索，
+可以找到不同的在线&lt;code class=&quot;highlighter-rouge&quot;&gt;Markdown&lt;/code&gt;编辑网站，它们对同一份文档的渲染结果是不同的。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;tex-2&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;的使用说明&lt;/h1&gt;
+&lt;p&gt;目前，我会优先考虑使用&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;，而非直接使用纯粹的&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;，因为前者的使用，能够将精力更多
+的放在撰写的内容上。&lt;/p&gt;
+
+&lt;p&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的过程中，建议积累自己的一份样式模板，并通过源代码管理这个过程。后面的附录会附上我自己积累的一份样式模板。&lt;/p&gt;
+
+&lt;p&gt;目前在&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的使用过程中，碰到的问题有如下几类（详细的问题清单，也会附在后文的附录中，供参考）：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;中文等CJK字体的编译问题：解决方案通常是选用合适的字体，配置不同格式的字体名称，需要留意字体的版权声明；&lt;/li&gt;
+  &lt;li&gt;文档编译出错：这时，需要仔细阅读编译日志，通常用编译日志中的错误信息在网上搜索，都能得到解决方案；&lt;/li&gt;
+  &lt;li&gt;不知道如何实现具体的排版样式：我目前没有精力仔细研究纯粹的&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;（plain &lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;）语法，所以还是通过搜索
+来解决问题。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;可以从&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTex&lt;/code&gt;的&lt;a href=&quot;https://en.wikibooks.org/wiki/LaTeX&quot;&gt;Wikibook&lt;/a&gt;开始读起。
+另外官方的&lt;a href=&quot;http://tug.org/begin.html&quot;&gt;tug.org&lt;/a&gt;和无所不知的&lt;a href=&quot;http://tex.stackexchange.com/&quot;&gt;stackoverflow&lt;/a&gt;都能找到
+很多帮助文档。&lt;/p&gt;
+
+&lt;p&gt;准备一张 &lt;em&gt;LaTeX Cheat Sheet&lt;/em&gt; 供参考。&lt;/p&gt;
+
+&lt;h2 id=&quot;texlatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的区别&lt;/h2&gt;
+
+&lt;p&gt;正如前面说的那样：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;是一个排版系统的基础；&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;在&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;基础上，定义了很多便捷的样式模板；&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;XeLaTeX&lt;/code&gt;增加了对&lt;code class=&quot;highlighter-rouge&quot;&gt;CJK&lt;/code&gt;的更好支持。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;tex-3&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;注重排版&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;更像一个排版系统，参考&lt;a href=&quot;http://stackoverflow.com/a/7014579&quot;&gt;tex.stack问答&lt;/a&gt;
+或者&lt;a href=&quot;http://www.haverford.edu/mathematics/resources/LaTeX_vs_TeX.php&quot;&gt;此处&lt;/a&gt;：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Learn TeX only if you would like to become a typesetter&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt; is a system designed for typesetting&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;latex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;注重内容&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;能够更快地编写文档，但是没法体会到&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;的很多特性，
+参考&lt;a href=&quot;http://www.tug.org/pipermail/texhax/2009-October/013645.html&quot;&gt;tug.org上的文档&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.zhihu.com/question/20638337&quot;&gt;知乎问答&lt;/a&gt;上，也给出了一个分类列表——&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;之于&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;，就像“引擎”之于“格式”。
+&lt;a href=&quot;http://www.zhihu.com/question/25033797/answer/29962700&quot;&gt;知乎另一份问答&lt;/a&gt;里提到，&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;和&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的选择，需要一定的权衡：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;用LaTeX的时候，还真有你想要某些功能而没有的情况。怎么办？两种办法：花钱找高人帮着写；自己写。&lt;/p&gt;
+
+  &lt;p&gt;…&lt;/p&gt;
+
+  &lt;p&gt;首先需要熟悉LaTeX的内部命令（大部分是含有@字符的命令），有时候这还不够，
+万一碰到\expandafter，\futurelet，\ifvoid等等还得碰底层的primitive（基本命令）。
+这个时候，还真就没plain TeX用着舒服。不过舒服也是有代价的，
+因为plain TeX很短，能很快看完，但是前提是能够顺利地把TeXbook看完。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;样例模板参考&lt;/h2&gt;
+
+&lt;h3 id=&quot;latex-1&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的格式样例&lt;/h3&gt;
+
+&lt;p&gt;参考附录部分的样例模板。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-2&quot;&gt;学术论文格式样例&lt;/h3&gt;
+
+&lt;p&gt;在互联网上总能找到很多学术论文的模板样例：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://web.mit.edu/thesis/tex/&quot; title=&quot;MIT Thesis LaTeX Template&quot;&gt;MIT thesis templates&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;非官方的&lt;a href=&quot;https://github.com/weijianwen/SJTUThesis&quot; title=&quot;SJTU Thesis LaTeX Template&quot;&gt;上海交通大学学位论文模板&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.acm.org/publications/article-templates/acm-latex-style-guide&quot;&gt;ACM LaTeX Style Guide&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://phd.epfl.ch/thesistemplates&quot;&gt;Generic EPFL Template in LaTeX&lt;/a&gt;，Scala！&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://www.elsevier.com/authors/author-schemas/latex-instructions&quot;&gt;Elsevier LaTeX instructions&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www2.ametsoc.org/ams/index.cfm/publications/authors/journal-and-bams-authors/author-resources/latex-author-info/preparing-a-latex-manuscript-for-submission/&quot;&gt;AMS LaTeX Guide&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;section-3&quot;&gt;编译命令参考&lt;/h3&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;&lt;span class=&quot;c&quot;&gt;# 文件名: build.sh&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 编译过程中如果出现异常中断，可能需要清除临时文件&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# 谨慎使用git clean命令，这会删除untracked文件&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# git clean -fx&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 编译入口&lt;/span&gt;
+xelatex index.tex
+&lt;span class=&quot;c&quot;&gt;# 编译索引&lt;/span&gt;
+makeindex idx_finance.idx
+&lt;span class=&quot;c&quot;&gt;# 编译参考文献&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;x &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;c,f&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; ; &lt;span class=&quot;k&quot;&gt;do
+	&lt;/span&gt;bibtex &lt;span class=&quot;nv&quot;&gt;$x&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 引用参考文献编号&lt;/span&gt;
+xelatex index.tex
+xelatex index.tex&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;latexwebkatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;在Web页面的使用——基于&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;库&lt;/h2&gt;
+
+&lt;p&gt;如果想要体验在线编辑&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX&lt;/code&gt;文档，可以试用这两个网站：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;sharelatex.com&lt;/li&gt;
+  &lt;li&gt;overleaf.com&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这里主要讨论Web页面中使用&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;语法，显示数学公式。常用的解决方案是在网页中嵌入&lt;code class=&quot;highlighter-rouge&quot;&gt;MathJax&lt;/code&gt;库，
+然后使用&lt;code class=&quot;highlighter-rouge&quot;&gt;$$ \equation $$&lt;/code&gt;语法在网页中显示数学公式。&lt;/p&gt;
+
+&lt;p&gt;但是&lt;code class=&quot;highlighter-rouge&quot;&gt;MathJax&lt;/code&gt;库的加载和公式渲染（render）比较耗时。
+一个替代方案是使用&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;——出自&lt;a href=&quot;https://khan.github.io/KaTeX/&quot;&gt;Khan Academy&lt;/a&gt; 团队。
+&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;的渲染速度得益于它将所有的数学公式用&lt;code class=&quot;highlighter-rouge&quot;&gt;CSS&lt;/code&gt;的方式展示。&lt;/p&gt;
+
+&lt;p&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;需要注意的是：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;使用&lt;code class=&quot;highlighter-rouge&quot;&gt;$$ \equation $$&lt;/code&gt;而非&lt;code class=&quot;highlighter-rouge&quot;&gt;$ \equation $&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;如果需要居中显示行级公式，可以自定义&lt;code class=&quot;highlighter-rouge&quot;&gt;CSS&lt;/code&gt;。&lt;/li&gt;
+  &lt;li&gt;目前&lt;a href=&quot;https://github.com/Khan/KaTeX/releases/tag/v0.5.0&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX v0.5.0&lt;/code&gt;&lt;/a&gt;并不支持所有的&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;语法，
+比如&lt;code class=&quot;highlighter-rouge&quot;&gt;$$\LaTeX{}$$&lt;/code&gt;就无法被渲染。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;jekyllkatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Jekyll&lt;/code&gt;中的集成&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;如下的公式就是通过&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;渲染的：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;e^x = \lim_{n\rightarrow \infty} \sum_{t=0}^{n} ( \frac{1}{t!}\cdot x^t )= \sum_{t=0}^{\infty} (1 + x + \frac{1}{2!}x^2+\frac{1}{3!}x^3+ ... + \frac{1}{t!}\cdot x^t)&lt;/script&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;在&lt;code class=&quot;highlighter-rouge&quot;&gt;Jekyll&lt;/code&gt;中的集成，可以参考这篇文章（&lt;a href=&quot;http://xuc.me/blog/KaTeX-and-Jekyll/&quot;&gt;链接&lt;/a&gt;）。&lt;/p&gt;
+
+&lt;h3 id=&quot;gitbookkatex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gitbook&lt;/code&gt;中的集成&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gitbook&lt;/code&gt;已经提供了&lt;code class=&quot;highlighter-rouge&quot;&gt;KaTeX&lt;/code&gt;的插件：&lt;a href=&quot;http://plugins.gitbook.com/plugin/katex&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;gitbook-plugin-katex&lt;/code&gt;&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-4&quot;&gt;附录&lt;/h1&gt;
+
+&lt;h2 id=&quot;latex-2&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;使用过程中的问题列表&lt;/h2&gt;
+
+&lt;h3 id=&quot;latex-font-warning-font-shape-undefined&quot;&gt;LaTeX Font Warning: Font shape undefined&lt;/h3&gt;
+&lt;p&gt;如果一个字体集，少了粗体定义，则会出现这样的提示。解决方案是，
+手动指定文档中粗体对应的字体：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt;&lt;span class=&quot;c&quot;&gt;% CJK for XeTeX&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% http://www.ctan.org/pkg/xetexref&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% https://zh.wikipedia.org/wiki/XeTeX&lt;/span&gt;
+-&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;xltxtra&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+-&lt;span class=&quot;k&quot;&gt;\setmainfont&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[Mapping=tex-text]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;WenQuanYi Micro Hei&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;c&quot;&gt;% http://mirror.bjtu.edu.cn/CTAN/macros/xetex/latex/xecjk/xeCJK.pdf&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;xltxtra, xeCJK&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\setCJKmainfont&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[Mapping=tex-text]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;WenQuanYi Micro Hei&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\xeCJKsetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;AutoFakeBold=true, LoadFandol=false&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;\begin{document}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\maketitle&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;latex-error-file-multindsty-not-found&quot;&gt;latex error: file `multind.sty’ not found&lt;/h3&gt;
+
+&lt;p&gt;Windows 下的&lt;code class=&quot;highlighter-rouge&quot;&gt;MiKTeX 2.9&lt;/code&gt;不会出现这样的问题， &lt;code class=&quot;highlighter-rouge&quot;&gt;Lubuntu 14.04&lt;/code&gt;下的&lt;code class=&quot;highlighter-rouge&quot;&gt;TeX Live&lt;/code&gt;出现过这样的问题。
+tex.ac.uk下的&lt;a href=&quot;http://www.tex.ac.uk/cgi-bin/texfaq2html-beta?label=multind&quot;&gt;一份文档&lt;/a&gt; 指出：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;makeidx.sty (is) Part of the LaTeX distribution&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;所以&lt;a href=&quot;http://bioinforma.weebly.com/random-troubleshooting.html#/&quot;&gt;该文档&lt;/a&gt;尝试安装&lt;code class=&quot;highlighter-rouge&quot;&gt;texlive-full&lt;/code&gt;来解决问题:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-base&quot; data-lang=&quot;base&quot;&gt;sudo apt-get install texlive-full
+sudo texhash
+sudo texconfig&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;如果想要尝试手动安装&lt;code class=&quot;highlighter-rouge&quot;&gt;multind.sty&lt;/code&gt;，可以按照如下步骤：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;下载&lt;a href=&quot;http://ctan.org/pkg/multind&quot;&gt;multind.sty&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;参考&lt;a href=&quot;http://en.wikibooks.org/wiki/LaTeX/Installing_Extra_Packages#Installing_a_package&quot;&gt;Wikibook/LaTeX&lt;/a&gt;安装sty文件&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;mkdir /usr/share/texmf/tex/latex/multind&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sudo texhash&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;makeindex-financemulti-index&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;makeindex finance&lt;/code&gt;不会生成Multi Index页面&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;finance&lt;/code&gt;是一个文件名，而非命令。对比如下两个命令：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;scott@c9 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;~/repo/notes] &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;master &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;makeindex finance
+This is makeindex, version 2.15 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;TeX Live 2013] &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;kpathsea + Thai support&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.
+Scanning input file finance...done &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0 entries accepted, 0 rejected&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.
+Nothing written &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;finance.ind.
+Transcript written &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;finance.ilg.
+
+scott@c9 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;~/repo/notes] &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;master &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;makeindex finance.idx
+This is makeindex, version 2.15 &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;TeX Live 2013] &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;kpathsea + Thai support&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.
+Scanning input file finance.idx....done &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;22 entries accepted, 0 rejected&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.
+Sorting entries....done &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;106 comparisons&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.
+Generating output file finance.ind....done &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;59 lines written, 0 warnings&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;.
+Output written &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;finance.ind.
+Transcript written &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;finance.ilg.&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;xecjk-error-key-unknown&quot;&gt;xeCJK error: “key-unknown”&lt;/h3&gt;
+
+&lt;p&gt;可能会在&lt;code class=&quot;highlighter-rouge&quot;&gt;Lubuntu 14.04&lt;/code&gt;下遇到这样的问题：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! xeCJK error: &lt;span class=&quot;s2&quot;&gt;&quot;key-unknown&quot;&lt;/span&gt;
+!
+! Sorry, but xeCJK/options does not have a key called &lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;LoadFandol&lt;span class=&quot;s1&quot;&gt;&#39;.
+!
+! The key `LoadFandol&#39;&lt;/span&gt; is being ignored.
+!
+! See the xeCJK documentation &lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;further information.
+!
+! Type &amp;lt;&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&amp;gt; to &lt;span class=&quot;k&quot;&gt;continue&lt;/span&gt;.
+!...............................................  
+
+l.37 ...setup&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;AutoFakeBold&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;nv&quot;&gt;LoadFandol&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;解决方案是，更换字体配置：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt; &lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;xltxtra, xeCJK&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+-&lt;span class=&quot;k&quot;&gt;\setCJKmainfont&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[Mapping=tex-text]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;WenQuanYi Micro Hei&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\setCJKmainfont&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[BoldFont=Adobe Heiti Std]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Adobe Song Std&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;\xeCJKsetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;AutoFakeBold=true, CJKmath=true&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
++&lt;span class=&quot;c&quot;&gt;% Latin&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;fontspec, pifont&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\setmainfont&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Gentium Book Basic&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++
+ &lt;span class=&quot;nt&quot;&gt;\begin{document}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;cjk&quot;&gt;CJK字体的选用&lt;/h3&gt;
+
+&lt;p&gt;字体的选用，首先要注意版权的问题。&lt;/p&gt;
+
+&lt;p&gt;开源的CJK字体，可以选用&lt;a href=&quot;http://wenq.org/&quot;&gt;文泉驿&lt;/a&gt;，或者&lt;a href=&quot;http://blog.typekit.com/alternate/source-han-sans-chs/&quot;&gt;思源黑体&lt;/a&gt;。
+建议在配置中指定粗体、斜体等格式对应的字体文件。
+不过，目前并不能顺利地在LaTeX中使用思源黑体， 参考&lt;a href=&quot;http://www.zhihu.com/question/24535443&quot;&gt;知乎问答&lt;/a&gt;。
+而且使用思源黑体，可能会遇到如下错误：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;xelatex.exe: The font file could not be found.
+xelatex.exe: Data: Source Sans Pro/OT&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;可以参考知乎专题的&lt;a href=&quot;http://zhuanlan.zhihu.com/LaTeX/19807822&quot;&gt;解决方案&lt;/a&gt;，
+或者stackoverflow上的&lt;a href=&quot;http://tex.stackexchange.com/questions/84186/how-can-i-use-source-sans-pro-in-tex-live-2012&quot;&gt;问答&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;除此之外，可以为印刷出版物选用经典的&lt;code class=&quot;highlighter-rouge&quot;&gt;Adobe Song Std&lt;/code&gt;字体，但需留意
+&lt;a href=&quot;http://www.adobe.com/products/type/font-licensing/additional-license-rights.html&quot;&gt;版权&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;顺带提一下，拉丁字符字体，可选用开源的&lt;a href=&quot;http://scripts.sil.org/cms/scripts/page.php?item_id=Gentium&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Gentium&lt;/code&gt;&lt;/a&gt;字体集，
+非常适合印刷出版物。&lt;/p&gt;
+
+&lt;h3 id=&quot;cjk-1&quot;&gt;CJK字体不能在数学公式环境中显示&lt;/h3&gt;
+
+&lt;p&gt;解决方案如下：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt;-&lt;span class=&quot;k&quot;&gt;\xeCJKsetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;AutoFakeBold=true&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\xeCJKsetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;AutoFakeBold=true, CJKmath=true&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;emphtextbf&quot;&gt;使用强调&lt;code class=&quot;highlighter-rouge&quot;&gt;\emph&lt;/code&gt;而非加粗&lt;code class=&quot;highlighter-rouge&quot;&gt;\textbf&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;对于需要加粗的段落，建议使用声明式的强调（&lt;code class=&quot;highlighter-rouge&quot;&gt;\emph&lt;/code&gt;），而非命令式的加粗（&lt;code class=&quot;highlighter-rouge&quot;&gt;\textbf&lt;/code&gt;）。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikibooks.org/wiki/LaTeX/Fonts#Finding_fonts&quot;&gt;Wkibook/LaTeX&lt;/a&gt;中提到:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Do not use bold text in your paragraphs.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://tex.stackexchange.com/a/1983&quot;&gt;tex.stackexchange/Stefan Kottwitz&lt;/a&gt;也有这样的说明:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Further, I rarely use physical font commands in my body text.
+I use them to define styles in the preamble and
+use the styles in the document afterwards,
+ensuring consistency and allowing changes to be easily made.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;可以参考&lt;a href=&quot;http://tex.stackexchange.com/questions/6754/what-is-the-canonical-way-to-redefine-the-emph-command/6757#6757&quot;&gt;此处&lt;/a&gt;
+定义强调段落的样式：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt;+&lt;span class=&quot;c&quot;&gt;% bold emphasized text&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\DeclareRobustCommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\em&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\%&lt;/span&gt;
++  &lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;nomath&lt;span class=&quot;k&quot;&gt;\em&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\if&lt;/span&gt; b&lt;span class=&quot;k&quot;&gt;\expandafter\@&lt;/span&gt;car&lt;span class=&quot;k&quot;&gt;\f&lt;/span&gt;@series&lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;nil
++  &lt;span class=&quot;k&quot;&gt;\normalfont&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\bfseries&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\fi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;section-5&quot;&gt;编译之后的文档输出有乱码&lt;/h3&gt;
+
+&lt;p&gt;检查&lt;code class=&quot;highlighter-rouge&quot;&gt;.tex&lt;/code&gt;文档的编码，是否为&lt;code class=&quot;highlighter-rouge&quot;&gt;UTF-8&lt;/code&gt;：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;file -i &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.tex&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;section-6&quot;&gt;文献引用编号显示为&lt;code class=&quot;highlighter-rouge&quot;&gt;[?]&lt;/code&gt;&lt;/h3&gt;
+
+&lt;p&gt;仔细阅读编译日志，可以找到解决方案：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-sh&quot; data-lang=&quot;sh&quot;&gt;makeindex idx_finance.idx
+bibtex index.aux
+xelatex index.tex
++xelatex index.tex&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;也就是说，编译过程中，执行两次编译命令。&lt;/p&gt;
+
+&lt;h3 id=&quot;section-7&quot;&gt;修改目录中“索引”的层级&lt;/h3&gt;
+
+&lt;p&gt;如果想要将目录中“索引”的层级提高到“章节”级别，可以定义如下的排版格式：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt;+  &lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
++  &lt;span class=&quot;c&quot;&gt;% Put section depth at the same level as \chapter.&lt;/span&gt;
++  &lt;span class=&quot;k&quot;&gt;\renewcommand*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\toclevel&lt;/span&gt;@section&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+   &lt;span class=&quot;k&quot;&gt;\printindex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;idx&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;finance&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;Index of Finance&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++  &lt;span class=&quot;c&quot;&gt;% Put section depth back to its default value.&lt;/span&gt;
++  &lt;span class=&quot;k&quot;&gt;\renewcommand*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\toclevel&lt;/span&gt;@section&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;1&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++  &lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h3 id=&quot;section-8&quot;&gt;定义“摘要”章节的样式&lt;/h3&gt;
+
+&lt;p&gt;参考stackoverflow中的讨论：&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt;&lt;span class=&quot;c&quot;&gt;% http://stackoverflow.com/q/2737326&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\chapter*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\centering&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;\begin{normalsize}&lt;/span&gt;Abstract&lt;span class=&quot;nt&quot;&gt;\end{normalsize}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;nt&quot;&gt;\begin{quotation}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\noindent&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;% abstract text&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% Abstract&lt;/span&gt;
++&lt;span class=&quot;nt&quot;&gt;\end{quotation}&lt;/span&gt;
++&lt;span class=&quot;k&quot;&gt;\clearpage&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;section-9&quot;&gt;模板样例&lt;/h2&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-tex&quot; data-lang=&quot;tex&quot;&gt;&lt;span class=&quot;k&quot;&gt;\documentclass&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[a4paper]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;book&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% shortcut for scozv&#39;s github homepage&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;hyperref&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\scozv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;https://github.com/scozv&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% shortcut for \ding{213}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\To&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\ding&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;213&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;listings, color&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% shortcut for inline code snippet, like `code` in markdown&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% \newcommand{\cd}[1]{\colorbox[rgb]{0.86,0.86,0.86}{\lstinline$#1$}}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\cd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\lstinline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;$}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% shortcut for section, subsection, subsubsection&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% mb stands for member&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\mb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\subsection*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;#1&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\mmb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\subsubsection*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;#1&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% set style for multiple lines code snippet&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\lstset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;numbers=left, numberstyle=&lt;span class=&quot;k&quot;&gt;\tiny&lt;/span&gt;
+	, stepnumber=2, numbersep=5pt
+	, backgroundcolor=&lt;span class=&quot;k&quot;&gt;\color&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[rgb]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;0.86,0.86,0.86&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+	, basicstyle=&lt;span class=&quot;k&quot;&gt;\footnotesize\ttfamily&lt;/span&gt;
+	, breaklines=true&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% set index&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;multind&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeindex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;idx&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;finance&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\idxf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;[1]&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;idx&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;finance&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;#1&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% heading&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setcounter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;secnumdepth&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;3&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% set multi-ref&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;multibib&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;References of Programming&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcites&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;c&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;References of Finance&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newcites&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;f&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% CJK for XeTeX&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% http://www.ctan.org/pkg/xetexref&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% https://zh.wikipedia.org/wiki/XeTeX&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;% http://ctan.org/pkg/xecjk&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;xltxtra, xeCJK&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setCJKmainfont&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;[BoldFont=Adobe Heiti Std]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Adobe Song Std&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\xeCJKsetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;AutoFakeBold=true, CJKmath=true&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% Latin&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;fontspec, pifont&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setmainfont&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Gentium Book Basic&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;%[ItalicFont=Gentium Book Basic Bold]&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% intertext, trigleq and proof&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\usepackage&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;amsmath, amssymb, amsthm&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% bold emphasized text&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\DeclareRobustCommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\em&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\%&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;nomath&lt;span class=&quot;k&quot;&gt;\em&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\if&lt;/span&gt; b&lt;span class=&quot;k&quot;&gt;\expandafter\@&lt;/span&gt;car&lt;span class=&quot;k&quot;&gt;\f&lt;/span&gt;@series&lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;nil
+  &lt;span class=&quot;k&quot;&gt;\normalfont&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\bfseries&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;\fi&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% tiny margin note&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\long\def\@&lt;/span&gt;ympar#1&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\%&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;savemarbox&lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;marbox&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\small&lt;/span&gt; #1&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\global\setbox\@&lt;/span&gt;currbox&lt;span class=&quot;k&quot;&gt;\copy\@&lt;/span&gt;marbox
+  &lt;span class=&quot;k&quot;&gt;\@&lt;/span&gt;xympar&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% reduce the space of itemize&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\newlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;.5&lt;span class=&quot;k&quot;&gt;\itemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\addtolength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;-7pt&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;%&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\let\olditem\item&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\renewcommand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\item&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\itemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\wideitemsep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\olditem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;\begin{document}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\title&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Introduction of Building Documents with LaTeX&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\author&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Scott&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Aug, 12, 2015&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\maketitle&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;\chapter*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\centering&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;\begin{normalsize}&lt;/span&gt;Abstract&lt;span class=&quot;nt&quot;&gt;\end{normalsize}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;\begin{quotation}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\noindent&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;% abstract text&lt;/span&gt;
+This artical will give brief introduction for TeX and LaTeX,
+then discuss a few issues during using LaTeX
+and how to display LaTeX eqation on web page.
+Finally, a LaTeX template will be attached in Appendix.
+&lt;span class=&quot;nt&quot;&gt;\end{quotation}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\clearpage&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;% no indent of second ... paragraphs of each section&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\parindent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;0pt&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\setlength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\parskip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;1.3ex plus 0.5ex minus 0.3ex&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\part&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Part I&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;C01-01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;p1&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;c01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\part&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Part II&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;C02-01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;p2&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;c01&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;C02-02&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;p2&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;c02&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;\cleardoublepage&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\phantomsection&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\addcontentsline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;toc&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;chapter&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographystylec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;GBT7714-2005NLang&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographyc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;code/ref&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;\makeatletter&lt;/span&gt;
+  &lt;span class=&quot;c&quot;&gt;% Put section depth at the same level as \chapter.&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\renewcommand*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\toclevel&lt;/span&gt;@section&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\printindex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;idx&lt;span class=&quot;p&quot;&gt;_&lt;/span&gt;finance&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;Index of Finance&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;c&quot;&gt;% Put section depth back to its default value.&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\renewcommand*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\toclevel&lt;/span&gt;@section&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;1&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\makeatother&lt;/span&gt;  
+
+  &lt;span class=&quot;k&quot;&gt;\cleardoublepage&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\phantomsection&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\addcontentsline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;toc&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;chapter&lt;span class=&quot;p&quot;&gt;}{&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;\bibnamef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographystylef&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;GBT7714-2005NLang&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;\bibliographyf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;finance/ref&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;\appendix&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\part&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Appendix&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\chapter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;Appendix I&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;\include&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;appendix&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;\end{document}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;section-10&quot;&gt;参考文献&lt;/h1&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:TUG01&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://tug.org/tex-ptr-faq&quot;&gt;Pointers to Frequently Asked and Answered Questions&lt;/a&gt;. tug.org. [OL] &lt;a href=&quot;#fnref:TUG01&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:WIK01&quot;&gt;
+      &lt;p&gt;&lt;a href=&quot;https://zh.wikipedia.org/wiki/LaTeX#.E8.B6.A3.E5.91.B3.E6.87.89.E7.94.A8&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;LaTeX&lt;/code&gt;的趣味应用&lt;/a&gt;. wikipedia.org. [OL] &lt;a href=&quot;#fnref:WIK01&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>对Eric Lippert所著的Monads系列文章的综述</title>
+   <link href="https://scozv.github.io/blog/zh/pattern/2014/06/20/understand-monads-in-c"/>
+   <updated>2014-06-20T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/pattern/2014/06/20/understand-monads-in-c</id>
+   <content type="html">
+&lt;h1 class=&quot;no_toc&quot; id=&quot;section&quot;&gt;摘要&lt;/h1&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;本文主要对几篇讨论Monad的文献进行综述，文中的大部分代码都来自参考文献（我会指明参考来源）。本文有几处地方提出了几个思考题，这些思考题也来自参考文献，建议先尝试写写这些思考题，再去阅读参考文献。这一份综述尝试抛开函数编程的背景，去看看我们平时已经在使用但却没有留意的一些Monad。文章主要涉及到C#这门语言，但是不同的语言背景并不会有太多的影响。&lt;/p&gt;
+
+  &lt;p&gt;我推荐阅读参考文献中的英文原文。虽然中文意合英文形合&lt;sup id=&quot;fnref:G08&quot;&gt;&lt;a href=&quot;#fn:G08&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt;，但是本文的综述将使用中文，除了部分程序代码，和一些术语、人名 that 我不打算翻译的。&lt;/p&gt;
+
+  &lt;p&gt;本文对Haskell和.NET中异步Task的理解不够，如果需要了解Task这个Monad的话，请参考Stephen Toub的文章&lt;sup id=&quot;fnref:ST13&quot;&gt;&lt;a href=&quot;#fn:ST13&quot; class=&quot;footnote&quot;&gt;2&lt;/a&gt;&lt;/sup&gt;。另外，本文对Monad的综述都建立在强类型系统的基础上，关于JavaScript中的Monad，请观看Douglas Crockford的演讲。Douglas说“假如你理解了Monad，你就失去了用语言来解释它的能力”&lt;sup id=&quot;fnref:DC13&quot;&gt;&lt;a href=&quot;#fn:DC13&quot; class=&quot;footnote&quot;&gt;3&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;ul id=&quot;markdown-toc&quot;&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-1&quot; id=&quot;markdown-toc-section-1&quot;&gt;一个略微复杂的思考题&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-2&quot; id=&quot;markdown-toc-section-2&quot;&gt;身边的几个泛型类&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-3&quot; id=&quot;markdown-toc-section-3&quot;&gt;数学理论中的复合映射&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-4&quot; id=&quot;markdown-toc-section-4&quot;&gt;从复合映射到复合函数&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-5&quot; id=&quot;markdown-toc-section-5&quot;&gt;一个简单的加法运算&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-6&quot; id=&quot;markdown-toc-section-6&quot;&gt;更一般化的加法运算&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-7&quot; id=&quot;markdown-toc-section-7&quot;&gt;平面化&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#monad&quot; id=&quot;markdown-toc-monad&quot;&gt;Monad的历史&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#monad-1&quot; id=&quot;markdown-toc-monad-1&quot;&gt;Monad的性质&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-8&quot; id=&quot;markdown-toc-section-8&quot;&gt;开头的思考题&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-9&quot; id=&quot;markdown-toc-section-9&quot;&gt;总结&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#section-10&quot; id=&quot;markdown-toc-section-10&quot;&gt;参考文献&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;section-1&quot;&gt;一个略微复杂的思考题&lt;/h1&gt;
+&lt;p&gt;假如我们有如下这样一个委托，称其为K：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;delegate Answer K&amp;lt;T,Answer&amp;gt;(Func&amp;lt;T,Answer&amp;gt; k);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，T、Answer都是泛型类型。这个委托等价于：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Func&amp;lt;Func&amp;lt;T, Answer&amp;gt;, Answer&amp;gt; K;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;也就是说，K这个类型是一类函数签名，这类函数返回一个值Answer，接收一个参数，而接收的参数又是一类函数Func&amp;lt;T, Answer&amp;gt;。&lt;/p&gt;
+
+&lt;p&gt;另外，给出K的构造方法：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static K&amp;lt;T, Answer&amp;gt; ToContinuation&amp;lt;T, Answer&amp;gt;(this T value)
+{
+	return (Func&amp;lt;T, Answer&amp;gt; solve) =&amp;gt; solve(value);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;现在的问题是，参考K的构造方法，如何实现下面这个方法，保证它能够编译通过，即方法的返回类型和方法签名匹配？&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static K&amp;lt;U, Answer&amp;gt; SelectMany&amp;lt;T, U, Answer&amp;gt;(this K&amp;lt;T, Answer&amp;gt; m, Func&amp;lt;T, K&amp;lt;U, Answer&amp;gt;&amp;gt; k)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;这个问题来自Wes Dyer文章的最后一部分&lt;sup id=&quot;fnref:WD08&quot;&gt;&lt;a href=&quot;#fn:WD08&quot; class=&quot;footnote&quot;&gt;4&lt;/a&gt;&lt;/sup&gt;，我认为，如果能在看懂题意的基础上，尝试写一写内部实现，将有助于理解Monad。如果对题目有些费解，请先往下看。本文的最后会再次提到这个题目。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-2&quot;&gt;身边的几个泛型类&lt;/h1&gt;
+&lt;p&gt;Eric Lippert在他的Monad系列&lt;sup id=&quot;fnref:EL13&quot;&gt;&lt;a href=&quot;#fn:EL13&quot; class=&quot;footnote&quot;&gt;5&lt;/a&gt;&lt;/sup&gt;中，给出了如下几个泛型类，并借助这几个泛型类，由浅入深地揭示了Monad的性质。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Nullable&amp;lt;T&amp;gt;
+IEnumerable&amp;lt;T&amp;gt;
+Lazy&amp;lt;T&amp;gt;
+OnDemand&amp;lt;T&amp;gt;
+Task&amp;lt;T&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;其中，OnDemand&amp;lt;T&amp;gt;本质上是Func&amp;lt;T&amp;gt;，指的是一类无参有返回值的函数，Eric这样做，是为了和更一般的Func&amp;lt;V, U&amp;gt;加以区别。&lt;/p&gt;
+
+&lt;p&gt;这几个泛型类的特点是，它们都赋予了T新的能力：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Nullable&amp;lt;T&amp;gt; 使得T可空；&lt;/li&gt;
+  &lt;li&gt;IEnumerable&amp;lt;T&amp;gt; 使得T可以被遍历；&lt;/li&gt;
+  &lt;li&gt;Lazy&amp;lt;T&amp;gt; 使得T只在第一次需要的时候才计算，之后都从cache中获取；&lt;/li&gt;
+  &lt;li&gt;OnDemand&amp;lt;T&amp;gt; 使得T只有在需要的时候才被调用；&lt;/li&gt;
+  &lt;li&gt;Task&amp;lt;T&amp;gt; 使得…&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;因为这些泛型类扩展了T的能力，所以，我们称它们为Amplifier，对于这一类扩展后的类型，我们统一用M&amp;lt;T&amp;gt;来表示。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-3&quot;&gt;数学理论中的复合映射&lt;/h1&gt;
+&lt;p&gt;抛开计算机语言或者函数编程的思维，我们先来回顾一下高等数学中复合函数的概念。为了和计算机程序设计中的函数加以区别，我们使用映射这个术语。&lt;/p&gt;
+
+&lt;p&gt;给定如下两个映射：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;g(x) =  x^2-4x, f(x) = \ln (x+4)&lt;/script&gt;
+
+&lt;p&gt;令复合映射：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;p(x) = f(g(x))&lt;/script&gt;
+
+&lt;p&gt;符号计算得知：&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;p(x)= \ln (x^2-4x+4) = \ln [(x-2)^2] = 2 \ln (x-2)&lt;/script&gt;
+
+&lt;p&gt;我们可以看到，复合映射之后，新的映射计算过程被重新组合，我们并不需要先计算出&lt;script type=&quot;math/tex&quot;&gt;x^2-4x&lt;/script&gt;的值，再代入第二层函数。&lt;/p&gt;
+
+&lt;p&gt;我们思考，假如：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;令&lt;script type=&quot;math/tex&quot;&gt;x=e+2=4.718281828459045&lt;/script&gt;，我们是计算&lt;script type=&quot;math/tex&quot;&gt;(4.718281828459045)^2-4*4.718281828459045&lt;/script&gt;容易呢，还是计算&lt;script type=&quot;math/tex&quot;&gt;2 \ln (e+2-2)=2\ln e = 2&lt;/script&gt;容易？&lt;/li&gt;
+  &lt;li&gt;或者，运算器不支持平方运算，却有一张对数表，那么我们通过符号运算化简得到&lt;script type=&quot;math/tex&quot;&gt;p(x)&lt;/script&gt;，才能计算出结果；&lt;/li&gt;
+  &lt;li&gt;又或者，在程序语言中，传入的参数是Int.MaxValue，平方运算很可能超出存储的范围，那么我们也最好到最后再去用新的映射加以计算。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;所以，有些事儿不要急着去处理。后面我们还会看到这句话。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-4&quot;&gt;从复合映射到复合函数&lt;/h1&gt;
+&lt;p&gt;Wes Dyer在他的文章中用程序语言的方式来描述复合映射这样的概念&lt;sup id=&quot;fnref:WD08:1&quot;&gt;&lt;a href=&quot;#fn:WD08&quot; class=&quot;footnote&quot;&gt;4&lt;/a&gt;&lt;/sup&gt;，Wes Dyer首先给出对一般类型T的函数复合：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static Func&amp;lt;T, V&amp;gt; Compose&amp;lt;T, U, V&amp;gt;(this Func&amp;lt;U, V&amp;gt; f, Func&amp;lt;T, U&amp;gt; g)
+{
+    return x =&amp;gt; f(g(x));
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;在前面的小节里，我们提到，诸如Nullable&amp;lt;T&amp;gt;这些泛型类，它们扩展了T的能力，对于这一类扩展后的类型，我们统一用M&lt;t&gt;来表示。&lt;/t&gt;&lt;/p&gt;
+
+&lt;p&gt;如果我们用M&amp;lt;V&amp;gt;和M&amp;lt;U&amp;gt;来替换上面的签名，比如用Nullable&amp;lt;V&amp;gt;和Nullable&amp;lt;U&amp;gt;来替换：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static Func&amp;lt;T, Nullable&amp;lt;V&amp;gt;&amp;gt; Compose&amp;lt;T, U, V&amp;gt;(this Func&amp;lt;U, Nullable&amp;lt;V&amp;gt;&amp;gt; f, Func&amp;lt;T, Nullable&amp;lt;U&amp;gt;&amp;gt; g)
+{
+    return x =&amp;gt; f(g(x)); // 编译错误，g(x)返回一个Nullable&amp;lt;U&amp;gt;，但是f只接收U作为传入参数
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;简单的替换导致编译错误，因此Wes Dyer在文中引入了一个中间函数Bind，用来解决值域属于M&amp;lt;T&amp;gt;复合函数的绑定：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static M&amp;lt;V&amp;gt; Bind&amp;lt;U, V&amp;gt;(this M&amp;lt;U&amp;gt; m, Func&amp;lt;U, M&amp;lt;V&amp;gt;&amp;gt; k);
+
+public static Func&amp;lt;T, M&amp;lt;V&amp;gt;&amp;gt; Compose&amp;lt;T, U, V&amp;gt;(this Func&amp;lt;U, M&amp;lt;V&amp;gt;&amp;gt; f, Func&amp;lt;T, M&amp;lt;U&amp;gt;&amp;gt; g)
+{
+    return x =&amp;gt; Bind(g(x), f);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;那么，前文提到的那些M&amp;lt;T&amp;gt;：Nullable&amp;lt;T&amp;gt;, Lazy&amp;lt;T&amp;gt;, OnDemand&amp;lt;T&amp;gt;, Task&amp;lt;T&amp;gt;, IEnumerable&amp;lt;T&amp;gt;，这些类型的Bind函数分别应该如何实现呢？&lt;/p&gt;
+
+&lt;h1 id=&quot;section-5&quot;&gt;一个简单的加法运算&lt;/h1&gt;
+
+&lt;p&gt;扩展了一个T之后，我们现在有了增强版的类型M&amp;lt;T&amp;gt;。一个类型，总会有一些动态的行为。Eric Lippert在他的Monads系列中的第三部分，为上述的一些M&amp;lt;int&amp;gt;增加了一个加法运算&lt;sup id=&quot;fnref:EL13-3&quot;&gt;&lt;a href=&quot;#fn:EL13-3&quot; class=&quot;footnote&quot;&gt;6&lt;/a&gt;&lt;/sup&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static Nullable&amp;lt;int&amp;gt; AddOne(Nullable&amp;lt;int&amp;gt; nullable)
+{
+  if (nullable.HasValue)
+  {
+    int unwrapped = nullable.Value;
+    int result = unwrapped + 1;
+    return CreateSimpleNullable(result);
+  }
+  else  
+    return new Nullable&amp;lt;int&amp;gt;();
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;以及OnDemand&amp;lt;T&amp;gt;的加法运算：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static OnDemand&amp;lt;int&amp;gt; AddOne(OnDemand&amp;lt;int&amp;gt; onDemand)
+{
+  return ()=&amp;gt;
+  {
+    int unwrapped = onDemand();
+    int result = unwrapped + 1;
+    return result;
+  };
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;注意，我们前面提到，有些事儿不要着急去处理，OnDemand&amp;lt;int&amp;gt;的加法运算为什么不这样写呢？&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// 不要采用这样的实现方式
+static OnDemand&amp;lt;int&amp;gt; AddOne(OnDemand&amp;lt;int&amp;gt; onDemand)
+{
+  int unwrapped = onDemand();
+  int result = unwrapped + 1;
+  return ()=&amp;gt;{return result;}
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;因为我们过早地计算了最初的onDemand承载的值。&lt;/p&gt;
+
+&lt;p&gt;现在，参考上面两个实现，请写出其它M&amp;lt;T&amp;gt;的加法运算：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static Lazy&amp;lt;int&amp;gt; AddOne(Lazy&amp;lt;int&amp;gt; lazy)
+static IEnumerable&amp;lt;int&amp;gt; AddOne(IEnumerable&amp;lt;int&amp;gt; sequence)
+async static Task&amp;lt;int&amp;gt; AddOne(Task&amp;lt;int&amp;gt; task)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;答案在Eric的Monads系列中，请阅读参考文献。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-6&quot;&gt;更一般化的加法运算&lt;/h1&gt;
+&lt;p&gt;如何我们仔细地阅读上面的两个加法运算，我们会发现，加法这个操作，只出现在一个地方：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;int result = unwrapped + 1;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Eric在他的Monads系列的第四部分，将加法运算更一般化了&lt;sup id=&quot;fnref:EL13-4&quot;&gt;&lt;a href=&quot;#fn:EL13-4&quot; class=&quot;footnote&quot;&gt;7&lt;/a&gt;&lt;/sup&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static Nullable&amp;lt;R&amp;gt; ApplyFunction&amp;lt;A, R&amp;gt;(Nullable&amp;lt;A&amp;gt; nullable, Func&amp;lt;A, R&amp;gt; function)
+{
+  if (nullable.HasValue)
+  {
+    A unwrapped = nullable.Value;
+    R result = function(unwrapped);
+    return new Nullable&amp;lt;R&amp;gt;(result);
+  }
+  else
+    return new Nullable&amp;lt;R&amp;gt;();
+}
+
+// 使用ApplyFunction构造具体的复合函数
+static Nullable&amp;lt;int&amp;gt; AddOne(Nullable&amp;lt;int&amp;gt; nullable)
+{
+  return ApplyFunction(nullable, (int x) =&amp;gt; x + 1);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以看到，加法运算只是ApplyFunction的一个特例。&lt;/p&gt;
+
+&lt;p&gt;同样的，参考上面的实现，请思考其它几个M&amp;lt;T&amp;gt;的ApplyFunction应该如何实现：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static Lazy&amp;lt;R&amp;gt; ApplyFunction&amp;lt;A, R&amp;gt;(Lazy&amp;lt;A&amp;gt; lazy, Func&amp;lt;A, R&amp;gt; function);
+static OnDemand&amp;lt;R&amp;gt; ApplyFunction&amp;lt;A, R&amp;gt;(OnDemand&amp;lt;A&amp;gt; onDemand, Func&amp;lt;A, R&amp;gt; function);
+static IEnumerable&amp;lt;R&amp;gt; ApplyFunction&amp;lt;A, R&amp;gt;(IEnumerable&amp;lt;A&amp;gt; sequence, Func&amp;lt;A, R&amp;gt; function);
+async static Task&amp;lt;R&amp;gt; ApplyFunction&amp;lt;A, R&amp;gt;(Task&amp;lt;A&amp;gt; sequence, Func&amp;lt;A, R&amp;gt; function);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;section-7&quot;&gt;平面化&lt;/h1&gt;
+&lt;p&gt;设想，我们有如下一个方法，它计算一个整数的对数，当x小于零的时候，&lt;script type=&quot;math/tex&quot;&gt;\log&lt;/script&gt;函数没有意义，将返回一个空：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Nullable&amp;lt;int&amp;gt; SaftLog(int x) {return x &amp;gt; 0 ? Math.Log(x) : null;}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;如果把这个函数传给上一节给出的ApplyFunction，会有什么问题呢？&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static Nullable&amp;lt;R&amp;gt; ApplyFunction&amp;lt;A, R&amp;gt;(Nullable&amp;lt;A&amp;gt; nullable, Func&amp;lt;A, R&amp;gt; function);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;通过依次比对类型签名，我们发现，R对应的是Nullable&amp;lt;int&amp;gt;，也就是说，ApplyFunction返回的类型是：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Nullable&amp;lt;Nullable&amp;lt;int&amp;gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;首先，这在C#是不合法的，Nullable只能用在值类型上面。其次，就算合法，但也过多嵌套。同样的，Lazy&amp;lt;Lazy&amp;lt;int&amp;gt;&amp;gt;，OnDemand&amp;lt;OnDemand&amp;lt;T&amp;gt;&amp;gt;等都是不合适的。我们需要将其平面化。&lt;/p&gt;
+
+&lt;p&gt;Eric在他Monads系列的第五部分给出了新的一个函数签名&lt;sup id=&quot;fnref:EL13-5&quot;&gt;&lt;a href=&quot;#fn:EL13-5&quot; class=&quot;footnote&quot;&gt;8&lt;/a&gt;&lt;/sup&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static Nullable&amp;lt;R&amp;gt; ApplySpecialFunction&amp;lt;A, R&amp;gt;(Nullable&amp;lt;A&amp;gt; nullable, Func&amp;lt;A, Nullable&amp;lt;R&amp;gt;&amp;gt; function)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;回忆，在复合函数那一小节，Wes Dyer给出了如下的函数签名：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static M&amp;lt;V&amp;gt; Bind&amp;lt;U, V&amp;gt;(this M&amp;lt;U&amp;gt; m, Func&amp;lt;U, M&amp;lt;V&amp;gt;&amp;gt; k);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们看到，这两个签名本质上是相同的。&lt;/p&gt;
+
+&lt;p&gt;同样的，作为辅助思考的练习，请写出如下签名的实现：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static Nullable&amp;lt;R&amp;gt; ApplySpecialFunction&amp;lt;A, R&amp;gt;(Nullable&amp;lt;A&amp;gt; nullable, Func&amp;lt;A, Nullable&amp;lt;R&amp;gt;&amp;gt; function);
+static OnDemand&amp;lt;R&amp;gt; ApplySpecialFunction&amp;lt;A, R&amp;gt;(OnDemand&amp;lt;A&amp;gt; onDemand, Func&amp;lt;A, OnDemand&amp;lt;R&amp;gt;&amp;gt; function);
+static Lazy&amp;lt;R&amp;gt; ApplySpecialFunction&amp;lt;A, R&amp;gt;(Lazy&amp;lt;A&amp;gt; lazy, Func&amp;lt;A, Lazy&amp;lt;R&amp;gt;&amp;gt; function);
+static async Task&amp;lt;R&amp;gt; ApplySpecialFunction&amp;lt;A, R&amp;gt;(Task&amp;lt;A&amp;gt; task, Func&amp;lt;A, Task&amp;lt;R&amp;gt;&amp;gt; function);
+static IEnumerable&amp;lt;R&amp;gt; ApplySpecialFunction&amp;lt;A, R&amp;gt;(IEnumerable&amp;lt;A&amp;gt; sequence, Func&amp;lt;A, IEnumerable&amp;lt;R&amp;gt;&amp;gt; function);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h1 id=&quot;monad&quot;&gt;Monad的历史&lt;/h1&gt;
+&lt;p&gt;Wes Dyer在他的文章中简述了Monad的历史&lt;sup id=&quot;fnref:WD08:2&quot;&gt;&lt;a href=&quot;#fn:WD08&quot; class=&quot;footnote&quot;&gt;4&lt;/a&gt;&lt;/sup&gt;。他指出，Monad这个概念来自理论数学的范畴论，Eugenio Moggi在其文章《Notions of computation and monads》将Monad引入了计算机科学领域。Philip Wadler在其著作《The essence of functional programming》探讨了Monad的应用。Haskell中更是大量的使用了Monad。&lt;/p&gt;
+
+&lt;p&gt;这样一来，使得我们一说到Moand就和函数编程扯上关系。就好比面向对象、UML的特性容易表达设计模式那样，我们常常一说到设计模式，就往OOP上面靠&lt;sup id=&quot;fnref:CH13&quot;&gt;&lt;a href=&quot;#fn:CH13&quot; class=&quot;footnote&quot;&gt;9&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;p&gt;要知道，函数编程里面的匿名函数λ表达式，也是从理论数学中发展过来的&lt;sup id=&quot;fnref:WL14&quot;&gt;&lt;a href=&quot;#fn:WL14&quot; class=&quot;footnote&quot;&gt;10&lt;/a&gt;&lt;/sup&gt;。Eric也多次提及LINQ的设计者之一Erik Meijer正是Haskell的设计参与者，比如他在StackOverflow上对LINQ与Haskell关系的回答&lt;sup id=&quot;fnref:EL11&quot;&gt;&lt;a href=&quot;#fn:EL11&quot; class=&quot;footnote&quot;&gt;11&lt;/a&gt;&lt;/sup&gt;。&lt;/p&gt;
+
+&lt;h1 id=&quot;monad-1&quot;&gt;Monad的性质&lt;/h1&gt;
+&lt;p&gt;Eric指出Monad是类型（Type）的一种设计模式，是对现有Type的能力的一种放大（amplifier），或者是对T的一种wrapper，借助之前提到的几个M&amp;lt;T&amp;gt;，我们很容易地设计出一种“asynchronously-computed sequence of nullable bytes”&lt;sup id=&quot;fnref:EL13-2&quot;&gt;&lt;a href=&quot;#fn:EL13-2&quot; class=&quot;footnote&quot;&gt;12&lt;/a&gt;&lt;/sup&gt;类型：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Task&amp;lt;IEnumerable&amp;lt;Nullable&amp;lt;int&amp;gt;&amp;gt;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;所以我们需要一个构造器将T转化为M&amp;lt;T&amp;gt;，这就是下面我们会看到的Unit。&lt;/p&gt;
+
+&lt;p&gt;另外，Moanded类型还需要定义一个操作，用来复合函数。该放大器不会改变底层（Underlying）类型的原有特性。更重要的是，诸如OnDemand的复合，我们只有在最后invoke函数的时候，才去计算，不能过早。诸如IEnumerable&amp;lt;T&amp;gt;的复合，只有最终需要内部元素的时候，才去遍历，不能过早。诸如IQueryable&amp;lt;T&amp;gt;，只有最终需要拿回查询结果的时候，再去连接数据源，也不能过早。&lt;/p&gt;
+
+&lt;p&gt;一个直观的例子就是：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;// C#
+IEnumerabe&amp;lt;T&amp;gt;.Select().Where().FirstOrDefault();
+// Scala
+Seq[T].map().filter().firstOrDefault();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以看到，在这样一条复合运算中，最终只需要一个值，如果数组很长，映射的运算非常耗时，过早地遍历数组显然不是明智之举。是的，LINQ的延迟运算，就是基于这样的思想。&lt;/p&gt;
+
+&lt;p&gt;Eric在文中提出&lt;sup id=&quot;fnref:EL13-8&quot;&gt;&lt;a href=&quot;#fn:EL13-8&quot; class=&quot;footnote&quot;&gt;13&lt;/a&gt;&lt;/sup&gt;：&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;You might have noticed that the asynchronous, lazy, on-demand and sequence monads all have an interesting common property: when you apply a function to any of these monads, what you get back is an object that will perform that function in the future. Essentially, the bind function takes an immutable workflow and its subsequent step, and returns you the resulting new workflow. The bind operator does not execute the workflow; it makes a new workflow out of an old one.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;这个复合操作就是我们下面看到的Bind，在C#中，对应的函数名为SelectMany，在Scala中，对应的叫flatMap。&lt;/p&gt;
+
+&lt;p&gt;Wes Dyer表明，如果放大用Unit来构造，复合用Bind来表示的话，我们需要如下两个签名&lt;sup id=&quot;fnref:WD08:3&quot;&gt;&lt;a href=&quot;#fn:WD08&quot; class=&quot;footnote&quot;&gt;4&lt;/a&gt;&lt;/sup&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static M&amp;lt;T&amp;gt;  Unit&amp;lt;T&amp;gt;(T value);
+static M&amp;lt;R&amp;gt;  Bind&amp;lt;T, R&amp;gt;(M&amp;lt;T&amp;gt;, Func&amp;lt;T, M&amp;lt;R&amp;gt;&amp;gt;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;并满足如下的三个法则：&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;Left Identity&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Bind(Unit(e), k) = k(e)
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Right Identity&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Bind(m, Unit) = m
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;结合律&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Bind(m, x =&amp;gt; Bind(k(x), y =&amp;gt; h(y)) = Bind(Bind(m, x =&amp;gt; k(x)), y =&amp;gt; h(y))
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h1 id=&quot;section-8&quot;&gt;开头的思考题&lt;/h1&gt;
+
+&lt;p&gt;文章开头的练习题来自Wes Dyer的文献，那道题让我们习惯函数的返回值也是一个函数。&lt;/p&gt;
+
+&lt;p&gt;接下来，让我们来看Eric给出的思考题，这个思考题让我们尝试去设计一个Monad。&lt;/p&gt;
+
+&lt;p&gt;正如上一节所说，C#的Bind取名为SelectMany，给定实现&lt;sup id=&quot;fnref:EL13-10&quot;&gt;&lt;a href=&quot;#fn:EL13-10&quot; class=&quot;footnote&quot;&gt;14&lt;/a&gt;&lt;/sup&gt;：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static IEnumerable&amp;lt;R&amp;gt; SelectMany&amp;lt;A, R&amp;gt;(this IEnumerable&amp;lt;A&amp;gt; sequence, Func&amp;lt;A, IEnumerable&amp;lt;R&amp;gt;&amp;gt; function)
+{
+  foreach(A outerItem in sequence)
+    foreach(R innerItem in function(outerItem))
+      yield return innerItem;
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;使用SelectMany，请设计如下的实现：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static IEnumerable&amp;lt;A&amp;gt; Where(this IEnumerable&amp;lt;A&amp;gt; source, Func&amp;lt;A, boolean&amp;gt; prediction);
+static IEnumerable&amp;lt;R&amp;gt; Selcect(this IEnumerable&amp;lt;A&amp;gt; source, Func&amp;lt;A, R&amp;gt; map);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;借助SelectMany、Where和Select，我们可以实现更复杂的Join操作，请练习（暂时不要考虑时间复杂度效率的问题）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static IEnumerable&amp;lt;TResult&amp;gt; Join&amp;lt;TOuter, TInner, TKey, TResult&amp;gt;(
+    this IEnumerable&amp;lt;TOuter&amp;gt; outer,
+    IEnumerable&amp;lt;TInner&amp;gt; inner,
+    Func&amp;lt;TOuter, TKey&amp;gt; outerKeySelector,
+    Func&amp;lt;TInner, TKey&amp;gt; innerKeySelector,
+    Func&amp;lt;TOuter, TInner, TResult&amp;gt; resultSelector,
+    IEqualityComparer&amp;lt;TKey&amp;gt; comparer
+)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我强烈建议在查阅文献之前，动手写写这三个实现，对我们理解Monad有很大的帮助。我自己也尝试写过一遍，你可以参考我的Gist。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-9&quot;&gt;总结&lt;/h1&gt;
+&lt;p&gt;Monad是一种类型的设计模式，用来放大现有Type的能力。需要满足一些法则，并且向Monad上面添加操作流的时候，我们不要提早运行，而丢失了Monad特性。&lt;/p&gt;
+
+&lt;p&gt;添加操作类的过程，在Haskell中叫Bind，在C#中叫SelectMany，在Scala中叫flatMap。这样，对于凡是实现了这些签名的类，就可以在For Comperhensoin中使用了，Eric在Monad系列的第十二部分，对此有详细的阐述，同时还讨论了如何解决SelectMany多重嵌套导致的效率低下问题。&lt;/p&gt;
+
+&lt;p&gt;正如Eric指出的那样，Monad是类型的一种设计模式。所以Scala的Try[T]类，Rx库（rx.codeplex.com）中的IObservable&amp;lt;T&amp;gt;，还有LINQ，都是基于这样的设计模式。&lt;/p&gt;
+
+&lt;p&gt;最后，再次推荐阅读参考文献的英文原文。&lt;/p&gt;
+
+&lt;h1 id=&quot;section-10&quot;&gt;参考文献&lt;/h1&gt;
+
+&lt;div class=&quot;footnotes&quot;&gt;
+  &lt;ol&gt;
+    &lt;li id=&quot;fn:G08&quot;&gt;
+      &lt;p&gt;郭富强. 意合形合的汉英对比研究[D]. 华东师范大学 2006 &lt;a href=&quot;#fnref:G08&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:ST13&quot;&gt;
+      &lt;p&gt;Stephen Toub. &lt;a href=&quot;http://blogs.msdn.com/b/pfxteam/archive/2013/04/03/tasks-monads-and-linq.aspx&quot;&gt;Tasks, Monads, and LINQ&lt;/a&gt;[J/OL] 2013 &lt;a href=&quot;#fnref:ST13&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:DC13&quot;&gt;
+      &lt;p&gt;Douglas Crockford. Monads and Gonads, in the Speech named &lt;em&gt;JavaScript the Good Parts&lt;/em&gt; &lt;a href=&quot;#fnref:DC13&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:WD08&quot;&gt;
+      &lt;p&gt;Wes Dyer. &lt;a href=&quot;http://blogs.msdn.com/b/wesdyer/archive/2008/01/11/the-marvels-of-monads.aspx&quot;&gt;The Marvels of Monads&lt;/a&gt;[J/OL] 2008 &lt;a href=&quot;#fnref:WD08&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt; &lt;a href=&quot;#fnref:WD08:1&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;sup&gt;2&lt;/sup&gt;&lt;/a&gt; &lt;a href=&quot;#fnref:WD08:2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;sup&gt;3&lt;/sup&gt;&lt;/a&gt; &lt;a href=&quot;#fnref:WD08:3&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;sup&gt;4&lt;/sup&gt;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/category/monads&quot;&gt;Monads&lt;/a&gt;[J/OL] 2013 &lt;a href=&quot;#fnref:EL13&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13-3&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/2013/02/28/monads-part-three/&quot;&gt;Monads, Part 3&lt;/a&gt;[J/OL] 2013.02.28 &lt;a href=&quot;#fnref:EL13-3&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13-4&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/2013/03/04/monads-part-four/&quot;&gt;Monads, Part 4&lt;/a&gt;[J/OL] 2013.03.04 &lt;a href=&quot;#fnref:EL13-4&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13-5&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/2013/03/07/monads-part-five/&quot;&gt;Monads, Part 5&lt;/a&gt;[J/OL] 2013.03.07 &lt;a href=&quot;#fnref:EL13-5&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:CH13&quot;&gt;
+      &lt;p&gt;陈浩. &lt;a href=&quot;http://coolshell.cn/articles/8961.html&quot;&gt;从面向对象的设计模式看软件设计&lt;/a&gt;[J/OL] 2013 &lt;a href=&quot;#fnref:CH13&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:WL14&quot;&gt;
+      &lt;p&gt;维基百科. &lt;a href=&quot;https://en.wikipedia.org/wiki/Lambda_calculus&quot;&gt;λ演算&lt;/a&gt;[J/OL] 2014 &lt;a href=&quot;#fnref:WL14&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL11&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://stackoverflow.com/a/4683716&quot;&gt;Answer to &lt;em&gt;Are there any connections between Haskell and LINQ?&lt;/em&gt;&lt;/a&gt;[EB/OL]. StackOverflow.com 2011.01.13 &lt;a href=&quot;#fnref:EL11&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13-2&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/2013/02/25/monads-part-two/&quot;&gt;Monads, Part 2&lt;/a&gt;[J/OL] 2013.02.25 &lt;a href=&quot;#fnref:EL13-2&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13-8&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/2013/03/18/monads-part-eight/&quot;&gt;Monads, Part 8&lt;/a&gt;[J/OL] 2013.03.18 &lt;a href=&quot;#fnref:EL13-8&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+    &lt;li id=&quot;fn:EL13-10&quot;&gt;
+      &lt;p&gt;Eric Lippert. &lt;a href=&quot;http://ericlippert.com/2013/03/25/monads-part-ten/&quot;&gt;Monads, Part 10&lt;/a&gt;[J/OL] 2013.03.25 &lt;a href=&quot;#fnref:EL13-10&quot; class=&quot;reversefootnote&quot;&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/div&gt;
+</content>
+ </entry>
+ 
+ 
+ 
+ 
+ 
+ 
+ <entry>
+   <title>将网页版的QUnit.js测试移植到Node.js</title>
+   <link href="https://scozv.github.io/blog/zh/guide/2013/12/21/how-to-make-code-of-algojs-run-in-nodejs-as-in-browser"/>
+   <updated>2013-12-21T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/guide/2013/12/21/how-to-make-code-of-algojs-run-in-nodejs-as-in-browser</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;本文描述了我让代码在浏览器和Node.js两边都能运行的过程，略属娱乐。
+因为就项目 &lt;a href=&quot;https://github.com/scozv/algo-js&quot; title=&quot;Algo.js&quot;&gt;Algo.js&lt;/a&gt; 而言，我认为，重点在算法（ &lt;em&gt;Algo&lt;/em&gt;rithm ）。
+至于引入大文本输入测试（参见 &lt;a href=&quot;https://github.com/scozv/algo-js/issues/18&quot; title=&quot;issue #18&quot;&gt;issue #18&lt;/a&gt; ），是为了保证算法的正确和高效，以及今后的重构，
+当然这也很重要。引入持续集成，是尽可能想让一切都是自动化。&lt;/p&gt;
+
+  &lt;p&gt;对于已经完成了成套测试的网页版QUnit.js环境，要想移至到Node.js上运行，
+并且重构的代码要尽可能的少，测试代码最好不要有任何变化。&lt;/p&gt;
+
+  &lt;p&gt;需要注意，全局变量在浏览器和Node.js的环境下的名称不一样，完整的迁移
+方法请参考英文版本。&lt;/p&gt;
+
+  &lt;p&gt;（2016年更新）让我们使用Webpack吧。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;浏览器下，全局变量叫  &lt;code class=&quot;highlighter-rouge&quot;&gt;window&lt;/code&gt;，大量的代码可能使用了这个变量:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;(function (sorting, undefined) {
+    sorting.mergeSort = function () {};
+})(window.Sorting = window.Sorting || {})
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;Node.js下面，全局变量叫&lt;code class=&quot;highlighter-rouge&quot;&gt;global&lt;/code&gt; ，我们可以赋值（参考 &lt;a href=&quot;https://github.com/scozv/algo-js/blob/master/qunit/q.js&quot; title=&quot;a file named q.js&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;./qunit/q.js&lt;/code&gt;&lt;/a&gt;）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;window = global;
+
+require(&#39;../src/t.js&#39;)
+require(&#39;../src/x.array.js&#39;);
+require(&#39;../src/sorting.js&#39;);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;更多内容，请参考英文版本。&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>迭代版本的Tarjan强连通算法（二）</title>
+   <link href="https://scozv.github.io/blog/zh/algo/2013/11/23/how-to-write-iterative-tarjan-scc-algorithm-part-one"/>
+   <updated>2013-11-23T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/algo/2013/11/23/how-to-write-iterative-tarjan-scc-algorithm-part-one</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;上一次，我们提到了迭代深度优先查找（DFS）——用一个叫frontier的栈来保持访问顺序。今天，我们将看到迭代拓扑排序以及Karasoju强连通算法。&lt;/p&gt;
+
+  &lt;p&gt;今天的重点在于，我们会增加一个栈，名为head。当父节点的所有后代都访问过之后，应该满足head.peek() === frontier.peek()。&lt;/p&gt;
+
+  &lt;p&gt;本文大部分的解释（以及伪代码）需要阅读英文版本。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;post-content lang zh-cn&quot;&gt;
+拓扑排序的时候，需要记录当前访问的点，是从哪个父节点下来的。所以我们增加了一个叫head的栈，用来记录这个信息——当两个栈（frontier和head）的peek元素相同时，就意味着，父节点下面已经没有节点可以继续访问了，此时相当于一层递归的DFS结束。
+&lt;br /&gt;
+&lt;br /&gt;
+需要留意的是，同一个节点可能来自不同的父节点：比如有两条边3 &amp;#8594; 2和5 &amp;#8594; 2。那么节点2可能有两次push进frontier，所以在处理的时候需要留意节点的状态。显而易见地，如果某一个节点已经被标记了拓扑顺序，那么它就不应该再次被标记，也就是说，它就不应该再次进入head栈。
+&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>迭代版本的Tarjan强连通算法（一）</title>
+   <link href="https://scozv.github.io/blog/zh/algo/2013/11/10/how-to-write-iterative-tarjan-scc-algorithm-part-zero"/>
+   <updated>2013-11-10T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/algo/2013/11/10/how-to-write-iterative-tarjan-scc-algorithm-part-zero</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;上个月我完成了迭代版的Tarjan强连通算法（参见 &lt;a href=&quot;https://github.com/scozv/algo-js&quot; title=&quot;Algo.js&quot;&gt;Algo.js&lt;/a&gt; ） 。这一个系列的文章将解释这一过程和相关代码——包括迭代图遍历、迭代拓扑排序和Kosaraju强连通算法以及最后的迭代Tarjan算法三部分。本文先讲迭代图遍历。&lt;/p&gt;
+
+  &lt;p&gt;本文大部分的解释（以及伪代码）需要阅读英文版本。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;post-content lang zh-cn&quot;&gt;
+
+递归在某些程度上来说，很适合理解（只要找出递推公式），写起来也简单（因为它是递归）。我看过Erlang的一些介绍，这门函数式编程语言，在编译器的支持与优化下，很适合用递归。
+&lt;br /&gt;
+&lt;br /&gt;
+递归的调用需要栈（Call Stack）来维护。碰到一些栈上有容量限制的语言，比如Python、JavaScript等，要么扩大栈的容量，或者如本系列文章这样，尝试将递归转化成迭代。
+&lt;br /&gt;
+&lt;br /&gt;
+上面提到的深度优先查找（DFS），转化起来比较容易；而在我们第三部分将要提到的Tarjan强连通算法，转化起来就费了不少的心思（参见 &lt;a href=&quot;https://github.com/scozv/algo-js/issues/14&quot; target=&quot;_blank&quot;&gt;issue #14&lt;/a&gt;）。
+&lt;br /&gt;
+&lt;br /&gt;
+当然，我认为，能够用递归的地方应该尽量用，尤其在函数式编程语言中。本系列的递归到迭代的转化，一来解决JavaScript的函数栈的容量问题，二来可以帮助我理解强连通算法。
+&lt;br /&gt;
+&lt;br /&gt;
+下一篇我会整理一下拓扑排序的迭代转化，并将其应用到Kosaraju强连通算法中。
+
+&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+ 
+ <entry>
+   <title>使用Heap数据结构将Dijkstra最短路算法的时间复杂度降到O(n ln m)</title>
+   <link href="https://scozv.github.io/blog/zh/algo/2013/11/03/how-to-update-heap-in-dijkstra-shortest-path"/>
+   <updated>2013-11-03T00:00:00+08:00</updated>
+   <id>https://scozv.github.io/blog/zh/algo/2013/11/03/how-to-update-heap-in-dijkstra-shortest-path</id>
+   <content type="html">
+&lt;blockquote&gt;
+  &lt;p&gt;为了将Dijkstra最短路径算法的时间复杂度从 &lt;script type=&quot;math/tex&quot;&gt;O(nm)&lt;/script&gt; 降低到 &lt;script type=&quot;math/tex&quot;&gt;O(n \ln m)&lt;/script&gt; ，
+我们可以使用 &lt;strong&gt;heap&lt;/strong&gt; 。不过迭代中的每一次更新heap的过程，我们需要一些技巧来保持heap的有序性。
+本文就会指出该技巧，并且解释我在算法代码中的一些&lt;a href=&quot;https://goo.gl/NssHNy&quot; title=&quot;Diff of Algo.js&quot;&gt;变动&lt;/a&gt;。&lt;/p&gt;
+
+  &lt;p&gt;本文大部分的解释需要阅读英文版本。&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;p&gt;&lt;a name=&quot;pi&quot;&gt;
+&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;post-content lang zh-cn&quot;&gt;
+
+简言之，算法的每次迭代，都是用较小的值去更新原来的heap，
+所以我们应该调用 &lt;code&gt;heap.swim()&lt;/code&gt; 来维持heap的有序性。
+
+&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ 
+</feed>
